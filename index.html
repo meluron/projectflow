@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Flow</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+    :root {
+      --primary: #f79c31;
+      --primary-soft: rgba(247, 156, 49, 0.1);
+      --bg: #f8f9fc;
+      --card-bg: #ffffff;
+      --text: #1a1a1c;
+      --text-secondary: #6e6e73;
+      --accent-dark: #1e3c72;
+      --border: #e8e8ed;
+      --radius-lg: 12px;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; outline: none; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .app-container {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* --- SIDEBAR --- */
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 32px 24px;
+      overflow-y: auto;
+    }
+
+    .header h1 { 
+      font-size: 22px; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 28px 0; 
+      color: var(--accent-dark);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .header h1::before { content: ''; width: 12px; height: 12px; background: var(--primary); border-radius: 3px; }
+
+    .controls { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+    
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .add-input {
+      width: 100%;
+      padding: 12px 16px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--bg);
+      font-size: 14px; transition: var(--transition);
+    }
+    .add-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px var(--primary-soft); }
+    
+    .shortcut-hint {
+      position: absolute; right: 12px;
+      font-size: 10px; font-weight: 700; color: var(--text-secondary);
+      background: #eef0f5; padding: 2px 6px; border-radius: 4px;
+      pointer-events: none; border: 1px solid var(--border);
+    }
+
+    /* --- HORIZONTAL TOOLBAR --- */
+    .tool-bar { 
+      display: flex; 
+      flex-direction: row; /* Fixed to horizontal */
+      gap: 12px; 
+      justify-content: flex-start;
+    }
+
+    .drag-handle { cursor: grab; color: #cbd5e0; padding: 4px; user-select: none; font-size: 14px; }
+    .drag-handle:active { cursor: grabbing; }
+
+    .btn-circle {
+      width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+      background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: var(--transition); color: var(--text-secondary); font-size: 16px;
+    }
+    .btn-circle:hover, .btn-circle:focus { background: var(--primary); color: white !important; border-color: var(--primary); }
+    .btn-circle.active { background: var(--accent-dark); color: white; border-color: var(--accent-dark); }
+
+    /* --- PROJECT CARDS --- */
+    .projects-grid { display: flex; flex-direction: column; gap: 8px; }
+    .project-card {
+      background: transparent; border: 1px solid transparent;
+      border-radius: var(--radius-lg); padding: 12px 16px;
+      cursor: pointer; transition: var(--transition);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .project-card:hover { background: #f0f2f7; }
+    .project-card.selected { background: #fff; border-color: var(--border); box-shadow: var(--shadow); }
+    .project-card.selected .p-title { color: var(--primary); }
+
+    .p-header { display: flex; align-items: center; gap: 8px; }
+    .p-title { font-weight: 600; font-size: 15px; flex: 1; color: var(--text); }
+    .p-card-actions { display: flex; gap: 2px; opacity: 0; }
+    .project-card:hover .p-card-actions { opacity: 1; }
+    .p-stats { font-size: 11px; font-weight: 500; color: var(--text-secondary); margin-left: 28px; display: flex; justify-content: space-between; }
+
+    /* --- MAIN PANEL --- */
+    .main-content { padding: 48px; overflow-y: auto; display: flex; justify-content: center; position: relative; }
+    .panel {
+      background: var(--card-bg); border-radius: 20px; padding: 40px;
+      border: 1px solid var(--border); width: 100%; max-width: 760px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.02); height: fit-content; min-height: 560px;
+      margin-top: 60px;
+    }
+
+    .action-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #f1f1f4; background: #fff; }
+    .action-text { flex: 1; font-size: 15px; font-weight: 500; }
+    .action-text.done { text-decoration: line-through; color: var(--text-secondary); }
+    
+    .action-time-btn { 
+        font-family: 'JetBrains Mono'; font-size: 11px; color: var(--primary); 
+        background: var(--primary-soft); padding: 4px 8px; border-radius: 6px;
+        border: none; cursor: pointer; transition: 0.2s; font-weight: 600;
+    }
+    .action-time-btn:hover { background: var(--primary); color: white; }
+
+    .icon-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 6px; border-radius: 6px; transition: 0.2s; }
+    .icon-btn:hover { background: var(--bg); color: var(--primary); }
+
+    .hidden { display: none !important; }
+    .tab { padding: 8px 0; cursor: pointer; font-weight: 600; color: var(--text-secondary); border: none; background: none; font-size: 14px; margin-right: 28px; position: relative; }
+    .tab.active { color: var(--text); }
+    .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--primary); }
+
+    /* --- POMO DASH BOX --- */
+    .pomo-dash-container {
+        position: absolute; top: 20px; right: 48px;
+        background: #fff; border: 1px solid var(--border);
+        padding: 12px 16px; border-radius: 12px; box-shadow: var(--shadow);
+        display: flex; flex-direction: column; gap: 8px;
+    }
+    .pomo-dash-title { font-size: 10px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+    .pomo-dash-grid { display: flex; gap: 10px; align-items: flex-end; }
+    .pomo-day { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .pomo-bar { width: 14px; background: var(--bg); border-radius: 3px; position: relative; height: 40px; }
+    .pomo-bar-fill { position: absolute; bottom: 0; width: 100%; background: var(--primary); border-radius: 3px; transition: height 0.3s; }
+    .pomo-count { font-size: 9px; font-weight: 700; color: var(--accent-dark); }
+    .pomo-label { font-size: 9px; font-weight: 600; color: var(--text-secondary); }
+
+    .notes-area { width: 100%; min-height: 380px; border: 1px solid var(--border); font-family: inherit; font-size: 15px; padding: 20px; border-radius: 12px; resize: none; line-height: 1.6; }
+  </style>
+</head>
+<body onkeydown="handleGlobalKeys(event)">
+
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="header"><h1>Project Flow</h1></div>
+      
+      <div class="controls">
+        <div class="input-wrapper">
+            <input type="text" id="project-input" class="add-input" placeholder="+ Add new project..." tabindex="1" />
+            <span class="shortcut-hint">⌘K</span>
+        </div>
+        <div class="tool-bar">
+          <button class="btn-circle" id="pomo-btn" title="Click: Start | Hold: Set Time" tabindex="2" onkeydown="if(event.key==='Enter') togglePomo()"><i class="fas fa-stopwatch"></i></button>
+          <button class="btn-circle" onclick="exportData()" title="Export" tabindex="3"><i class="fas fa-download"></i></button>
+          <button class="btn-circle" onclick="document.getElementById('import-file').click()" title="Import" tabindex="4"><i class="fas fa-upload"></i></button>
+          <button class="btn-circle" onclick="clearAllData()" title="Clear All" tabindex="5"><i class="fas fa-trash-alt"></i></button>
+          <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
+        </div>
+      </div>
+
+      <div class="projects-grid" id="projects-grid"></div>
+    </aside>
+
+    <main class="main-content">
+      <div class="pomo-dash-container">
+          <div class="pomo-dash-title">Last 7 Days Focus</div>
+          <div class="pomo-dash-grid" id="pomo-dash"></div>
+      </div>
+
+      <div id="empty-state" style="text-align:center; margin-top:140px; color:var(--text-secondary);">
+        <i class="fas fa-briefcase fa-2x" style="opacity:0.15; margin-bottom:20px;"></i>
+        <p style="font-weight: 500;">Select a project to see tasks</p>
+        <p style="font-size:12px; opacity:0.6; margin-top:8px;">↑ ↓ Arrows to navigate | Enter to add tasks</p>
+      </div>
+
+      <div id="actions-panel" class="panel hidden">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;">
+          <div><h2 id="panel-title" style="margin:0; font-size:32px; font-weight:800;"></h2></div>
+          <div id="timer-display" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--accent-dark); font-size:22px;"></div>
+        </div>
+
+        <div style="border-bottom: 1px solid var(--border); margin-bottom: 32px; display: flex;">
+          <button class="tab active" onclick="switchTab('tasks')" id="tab-tasks" tabindex="100">Tasks</button>
+          <button class="tab" onclick="switchTab('notes')" id="tab-notes" tabindex="101">Notes</button>
+        </div>
+
+        <div id="tasks-content">
+          <input type="text" id="action-input" class="add-input" style="width:100%; margin-bottom:24px; padding:16px;" placeholder="What needs to be done?" tabindex="102" />
+          <div id="active-actions"></div>
+          <div id="archived-actions" style="margin-top:32px; border-top:1px solid var(--border); padding-top:20px; opacity:0.6;"></div>
+        </div>
+
+        <div id="notes-content" class="hidden">
+          <textarea id="notes-area" class="notes-area" oninput="updateNotes()" tabindex="103"></textarea>
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script>
+  let projects = JSON.parse(localStorage.getItem('pf-v12')) || [];
+  let pomoHistory = JSON.parse(localStorage.getItem('pf-pomo-v12')) || [];
+  let activeId = null;
+  let dragSource = null;
+  
+  let defaultMins = 25;
+  let pomoSecs = defaultMins * 60;
+  let pomoTimer = null;
+  let isPomoRunning = false;
+  let longHoldTimer = null;
+
+  function init() {
+    cleanPomoHistory();
+    render();
+    setupPomoEvents();
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    document.querySelector('.shortcut-hint').innerText = isMac ? '⌘K' : 'Ctrl+K';
+  }
+
+  function handleDrop(e, targetId, type) {
+    e.preventDefault();
+    if (!dragSource || dragSource.type !== type) return;
+    let list = type === 'project' ? projects : projects.find(x => x.id === activeId).actions;
+    const fromIdx = list.findIndex(x => x.id === dragSource.id);
+    const toIdx = list.findIndex(x => x.id === targetId);
+    const [moved] = list.splice(fromIdx, 1);
+    list.splice(toIdx, 0, moved);
+    save();
+  }
+
+  function cleanPomoHistory() {
+    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    pomoHistory = pomoHistory.filter(t => t > sevenDaysAgo);
+    localStorage.setItem('pf-pomo-v12', JSON.stringify(pomoHistory));
+  }
+
+  function logPomoCompletion() {
+    pomoHistory.push(Date.now());
+    localStorage.setItem('pf-pomo-v12', JSON.stringify(pomoHistory));
+    renderPomoDash();
+  }
+
+  function renderPomoDash() {
+    const dash = document.getElementById('pomo-dash');
+    dash.innerHTML = '';
+    const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(today.getDate() - i); d.setHours(0,0,0,0);
+        const endD = new Date(d); endD.setHours(23,59,59,999);
+        const count = pomoHistory.filter(t => t >= d.getTime() && t <= endD.getTime()).length;
+        const fillHeight = Math.min(count * 6, 40);
+        const dayEl = document.createElement('div');
+        dayEl.className = 'pomo-day';
+        dayEl.innerHTML = `<span class="pomo-count">${count}</span><div class="pomo-bar"><div class="pomo-bar-fill" style="height: ${fillHeight}px"></div></div><span class="pomo-label">${days[d.getDay()]}</span>`;
+        dash.appendChild(dayEl);
+    }
+  }
+
+  function logManualTime(actionId) {
+    const p = projects.find(x => x.id === activeId);
+    const a = p.actions.find(x => x.id === actionId);
+    const val = prompt("Enter minutes spent on this task:", Math.round((a.timeSpent || 0) / 60));
+    if (val !== null) {
+        const mins = parseInt(val);
+        if (!isNaN(mins) && mins >= 0) { a.timeSpent = mins * 60; save(); }
+    }
+  }
+
+  function formatTime(secs) {
+    if (!secs || secs < 0) return "0m";
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
+
+  function getProjectTotalTime(p) {
+    const total = p.actions.reduce((sum, a) => sum + (a.timeSpent || 0), 0);
+    return formatTime(total);
+  }
+
+  function setupPomoEvents() {
+    const btn = document.getElementById('pomo-btn');
+    btn.onmousedown = () => {
+      longHoldTimer = setTimeout(() => {
+        const n = prompt("Set pomo duration (minutes):", defaultMins);
+        if (n && !isNaN(n)) { defaultMins = parseInt(n); pomoSecs = defaultMins * 60; updateTimerDisplay(); }
+        btn.dataset.isLongHold = "true";
+      }, 700); 
+    };
+    btn.onmouseup = () => {
+      clearTimeout(longHoldTimer);
+      if (btn.dataset.isLongHold !== "true") togglePomo();
+      btn.dataset.isLongHold = "false";
+    };
+  }
+
+  function togglePomo() {
+    if (isPomoRunning) { clearInterval(pomoTimer); isPomoRunning = false; }
+    else {
+      isPomoRunning = true;
+      pomoTimer = setInterval(() => {
+        pomoSecs--;
+        if (pomoSecs <= 0) { 
+          clearInterval(pomoTimer); isPomoRunning = false; playBeep(); 
+          logPomoCompletion(); alert("Focus session complete!"); pomoSecs = defaultMins * 60; 
+        }
+        updateTimerDisplay();
+      }, 1000);
+    }
+    updateTimerDisplay();
+  }
+
+  function updateTimerDisplay() {
+    const m = Math.floor(pomoSecs / 60), s = pomoSecs % 60;
+    const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    const p = projects.find(x => x.id === activeId);
+    document.title = isPomoRunning ? `${timeStr} (${p ? p.name : 'Focus'})` : "ProjectFlow";
+    document.getElementById('timer-display').innerText = isPomoRunning ? timeStr : "";
+    document.getElementById('pomo-btn').classList.toggle('active', isPomoRunning);
+  }
+
+  function render() {
+    const grid = document.getElementById('projects-grid');
+    grid.innerHTML = '';
+    projects.forEach((p) => {
+      const card = document.createElement('div');
+      card.className = `project-card ${activeId === p.id ? 'selected' : ''}`;
+      card.draggable = true;
+      card.onclick = () => openPanel(p.id);
+      card.ondragstart = (e) => { dragSource = { type: 'project', id: p.id }; e.target.style.opacity = '0.5'; };
+      card.ondragover = (e) => e.preventDefault();
+      card.ondrop = (e) => handleDrop(e, p.id, 'project');
+      card.ondragend = (e) => e.target.style.opacity = '1';
+      card.innerHTML = `
+        <div class="p-header"><div class="drag-handle">⋮⋮</div><div class="p-title">${p.name}</div>
+        <div class="p-card-actions">
+            <button class="icon-btn" onclick="event.stopPropagation(); editProjectName('${p.id}')"><i class="fas fa-pencil-alt"></i></button>
+            <button class="icon-btn" onclick="event.stopPropagation(); deleteProject('${p.id}')"><i class="fas fa-trash-alt"></i></button>
+        </div></div>
+        <div class="p-stats"><span>${p.actions.filter(a => a.done).length}/${p.actions.length} Tasks</span><span style="color:var(--primary); font-family:'JetBrains Mono'">${getProjectTotalTime(p)}</span></div>`;
+      grid.appendChild(card);
+    });
+    if (activeId) {
+      renderActions();
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('actions-panel').classList.remove('hidden');
+    } else {
+      document.getElementById('empty-state').classList.remove('hidden');
+      document.getElementById('actions-panel').classList.add('hidden');
+    }
+    updateTimerDisplay();
+    renderPomoDash();
+  }
+
+  function renderActions() {
+    const p = projects.find(x => x.id === activeId);
+    const activeList = document.getElementById('active-actions'), archList = document.getElementById('archived-actions');
+    activeList.innerHTML = ''; archList.innerHTML = '';
+    document.getElementById('panel-title').innerText = p.name;
+    document.getElementById('notes-area').value = p.notes || "";
+    p.actions.forEach((a) => {
+      const item = document.createElement('div');
+      item.className = 'action-item';
+      item.draggable = true;
+      item.ondragstart = (e) => { dragSource = { type: 'action', id: a.id }; e.target.style.opacity = '0.5'; };
+      item.ondragover = (e) => e.preventDefault();
+      item.ondrop = (e) => handleDrop(e, a.id, 'action');
+      item.ondragend = (e) => e.target.style.opacity = '1';
+      item.innerHTML = `<div class="drag-handle">⋮⋮</div><input type="checkbox" style="accent-color:var(--primary); width:18px; height:18px;" ${a.done ? 'checked' : ''} onchange="toggleAction('${a.id}')"><div class="action-text ${a.done ? 'done' : ''}">${a.text}</div><button class="action-time-btn" onclick="logManualTime('${a.id}')">${formatTime(a.timeSpent)}</button><button class="icon-btn" onclick="editActionText('${a.id}')"><i class="fas fa-pencil-alt"></i></button><button class="icon-btn" onclick="deleteAction('${a.id}')"><i class="fas fa-trash-alt"></i></button>`;
+      (a.done ? archList : activeList).appendChild(item);
+    });
+  }
+
+  function openPanel(id) { activeId = id; render(); }
+  function save() { localStorage.setItem('pf-v12', JSON.stringify(projects)); render(); }
+  
+  function handleGlobalKeys(e) {
+    if (e.key === 'Escape') { e.preventDefault(); location.reload(); return; }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('project-input').focus(); return; }
+    
+    // NEW LOGIC: If a project is selected and user hits Enter, focus the add-action input
+    if (e.key === 'Enter' && activeId && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        const actionInput = document.getElementById('action-input');
+        if (actionInput) actionInput.focus();
+        return;
+    }
+
+    if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+      const idx = projects.findIndex(p => p.id === activeId);
+      if (e.key === 'ArrowDown') { e.preventDefault(); openPanel((projects[idx+1] || projects[0]).id); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); openPanel((projects[idx-1] || projects[projects.length-1]).id); }
+    }
+  }
+
+  function editProjectName(id) { const p = projects.find(x => x.id === id); const n = prompt("Rename:", p.name); if (n) { p.name = n; save(); } }
+  function editActionText(id) { const p = projects.find(x => x.id === activeId); const a = p.actions.find(x => x.id === id); const n = prompt("Edit:", a.text); if (n) { a.text = n; save(); } }
+  function toggleAction(id) { const p = projects.find(x => x.id === activeId); const a = p.actions.find(x => x.id === id); a.done = !a.done; save(); }
+  function deleteProject(id) { if(confirm("Delete?")) { projects = projects.filter(p => p.id !== id); if(activeId === id) activeId = null; save(); } }
+  function deleteAction(id) { const p = projects.find(x => x.id === activeId); p.actions = p.actions.filter(a => a.id !== id); save(); }
+  function clearAllData() { if(confirm("Clear ALL?")) { projects = []; pomoHistory = []; activeId = null; save(); } }
+  function updateNotes() { const p = projects.find(x => x.id === activeId); if(p) { p.notes = document.getElementById('notes-area').value; localStorage.setItem('pf-v12', JSON.stringify(projects)); } }
+  function playBeep() { const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.type = 'sine'; osc.frequency.value = 880; gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1); osc.start(); osc.stop(ctx.currentTime + 1); }
+  function exportData() {
+    // Generate a timestamp: YYYY-MM-DD_HH-MM
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const timeStr = now.getHours().toString().padStart(2, '0') + '-' + 
+                    now.getMinutes().toString().padStart(2, '0');
+    
+    const fileName = `ProjectFlowBackup_${dateStr}_${timeStr}.json`;
+    
+    const blob = new Blob([JSON.stringify({projects, pomoHistory}, null, 2)], { type: "application/json" });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(a.href); // Clean up memory
+  }
+  function importData(e) { const reader = new FileReader(); reader.onload = (ev) => { const data = JSON.parse(ev.target.result); projects = data.projects || data; pomoHistory = data.pomoHistory || []; save(); location.reload(); }; reader.readAsText(e.target.files[0]); }
+  function switchTab(tab) { document.getElementById('tab-tasks').classList.toggle('active', tab === 'tasks'); document.getElementById('tab-notes').classList.toggle('active', tab === 'notes'); document.getElementById('tasks-content').classList.toggle('hidden', tab !== 'tasks'); document.getElementById('notes-content').classList.toggle('hidden', tab !== 'notes'); }
+
+  document.getElementById('project-input').onkeydown = (e) => { if(e.key === 'Enter' && e.target.value.trim()) { projects.push({ id: Date.now().toString(), name: e.target.value, actions: [], notes: "" }); activeId = projects[projects.length-1].id; e.target.value = ''; save(); } };
+  document.getElementById('action-input').onkeydown = (e) => { if(e.key === 'Enter' && e.target.value.trim()) { const p = projects.find(x => x.id === activeId); p.actions.push({ id: Date.now().toString(), text: e.target.value, done: false, timeSpent: 0 }); e.target.value = ''; save(); } };
+
+  init();
+</script>
+</body>
+</html>
