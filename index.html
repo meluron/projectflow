@@ -5,222 +5,275 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Project Flow</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Special+Elite&display=swap');
 
     :root {
-      --primary: #f79c31;
-      --primary-soft: rgba(247, 156, 49, 0.1);
-      --bg: #f8f9fc;
-      --card-bg: #ffffff;
-      --text: #1a1a1c;
-      --text-secondary: #6e6e73;
-      --accent-dark: #1e3c72;
-      --border: #e8e8ed;
-      --radius-lg: 12px;
-      --shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --primary-dark: #3d2b1f;    
+      --accent-brown: #6f4e37;   
+      --muted-tan: #c0a080;      
+      --bg-warm: #d7ccc8;        
+      --paper-white: #fffcf9;    
+      --success-green: #7a9a65;  
+      --border-color: rgba(61, 43, 31, 0.12);
+      --radius: 12px;
     }
 
     * { box-sizing: border-box; outline: none; }
+    
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
+      font-family: 'Quicksand', sans-serif;
+      background-color: var(--bg-warm);
+      background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+      color: var(--primary-dark);
+      margin: 0; height: 100vh; display: flex; overflow: hidden;
     }
 
-    .app-container {
-      display: grid;
-      grid-template-columns: 360px 1fr;
-      width: 100%;
-      height: 100vh;
+    .app-container { 
+      display: grid; 
+      grid-template-columns: 320px 1fr; 
+      width: 100%; 
+      height: 100vh; 
+      transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    
+    .app-container.collapsed { grid-template-columns: 80px 1fr; }
 
     /* --- SIDEBAR --- */
     .sidebar {
-      background: #fff;
-      border-right: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      padding: 32px 24px;
-      overflow-y: auto;
+      background: var(--paper-white); border-right: 1px solid var(--border-color);
+      display: flex; flex-direction: column; padding: 25px;
+      box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+      height: 100vh; overflow: hidden; position: relative;
+      z-index: 10;
     }
 
-    .header h1 { 
-      font-size: 22px; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 28px 0; 
-      color: var(--accent-dark);
-      display: flex; align-items: center; gap: 10px;
-    }
-    .header h1::before { content: ''; width: 12px; height: 12px; background: var(--primary); border-radius: 3px; }
+    .app-container.collapsed .sidebar > *:not(.collapse-btn) { display: none !important; }
 
-    .controls { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+    .sidebar-header {
+      font-family: 'Special Elite', cursive; font-size: 20px;
+      color: var(--accent-brown); text-align: center; margin: 20px 0 30px 0;
+      border-bottom: 2px dashed var(--muted-tan); padding-bottom: 15px;
+      letter-spacing: 1px;
+    }
+
+    .input-wrapper { margin-bottom: 25px; }
+    .standard-input {
+      width: 100%; padding: 14px; border: 1.5px solid var(--border-color);
+      background: #fdfbf7; border-radius: var(--radius);
+      font-family: inherit; color: var(--primary-dark); font-weight: 600;
+      transition: all 0.2s;
+    }
+    .standard-input:focus { border-color: var(--muted-tan); background: white; }
+
+    .project-list { 
+      overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;
+    }
+
+    .project-list::-webkit-scrollbar { width: 4px; }
+    .project-list::-webkit-scrollbar-track { background: var(--bg-warm); }
+    .project-list::-webkit-scrollbar-thumb { background: var(--muted-tan); border-radius: 10px; }
+
+    .project-item {
+      padding: 15px; cursor: pointer; border-radius: var(--radius);
+      transition: 0.2s; display: flex; flex-direction: column; gap: 4px;
+      background: rgba(215, 204, 200, 0.2);
+    }
+    .project-item:hover { background: rgba(215, 204, 200, 0.4); transform: translateX(4px); }
+    .project-item.active { background: var(--accent-brown); color: white; box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3); }
+
+    .p-title-row { display: flex; justify-content: space-between; align-items: center; }
+    .p-meta { font-size: 11px; color: inherit; opacity: 0.8; font-weight: 700; text-transform: uppercase; }
+    .p-actions { opacity: 0; transition: 0.2s; }
+    .project-item:hover .p-actions { opacity: 1; }
+
+    .collapse-btn {
+      position: absolute; top: 20px; right: 15px;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-dark); color: var(--paper-white);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 100; transition: 0.3s;
+    }
+    .collapse-btn:hover { transform: scale(1.1); background: var(--accent-brown); }
+    .app-container.collapsed .collapse-btn { left: 24px; right: auto; }
+
+    /* --- DASHBOARD --- */
+    .dashboard-container {
+        position: absolute; top: 20px; right: 40px;
+        background: var(--paper-white); border: 1px solid var(--border-color);
+        padding: 12px 20px; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        display: flex; flex-direction: column; align-items: center;
+        min-width: 200px;
+    }
+    .dash-title { 
+        font-size: 10px; font-weight: 800; text-transform: uppercase; 
+        letter-spacing: 0.5px; color: var(--muted-tan); 
+        width: 100%; text-align: center;
+        margin-bottom: 30px;
+    }
+    .dash-grid { display: flex; gap: 12px; align-items: flex-end; height: 50px; }
+    .dash-day { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .dash-bar { width: 12px; background: #eee; border-radius: 4px; position: relative; height: 40px; overflow: hidden; }
+    .dash-bar-fill { position: absolute; bottom: 0; width: 100%; background: var(--success-green); transition: height 0.5s ease; }
+    .dash-label { font-size: 9px; font-weight: 700; color: var(--muted-tan); }
+    .dash-count { font-size: 9px; font-weight: 800; color: var(--accent-brown); }
+
+    /* --- MAIN VIEW --- */
+    .main-view { 
+      padding: 60px 40px; overflow-y: auto; 
+      display: flex; flex-direction: column; align-items: center; 
+      width: 100%; position: relative;
+    }
+
+    .notebook {
+      background: var(--paper-white); width: 100%; max-width: 800px;
+      min-height: 750px; border-radius: 2px; padding: 50px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+      border-left: 45px solid #dcd3cb; position: relative;
+    }
+
+    .notebook-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 40px; border-bottom: 2px solid #f5f1ed; padding-bottom: 30px;
+    }
+
+    #panel-title { margin: 0; font-family: 'Special Elite', cursive; font-size: 32px; color: var(--primary-dark); cursor: pointer; }
+
+    .timer-display {
+      width: 100px; height: 100px; border-radius: 50%;
+      border: 4px solid #f5f1ed; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; cursor: pointer;
+      background: white; color: var(--accent-brown); font-family: 'Special Elite', cursive;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .timer-display.active { border-color: var(--success-green); transform: scale(1.1); color: var(--success-green); }
+
+    .task-item { display: flex; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid #f5f1ed; }
+    .task-text { flex: 1; font-weight: 600; font-size: 17px; cursor: pointer; }
+    .task-text.done { text-decoration: line-through; opacity: 0.4; color: var(--accent-brown); }
+
+    .tabs { display: flex; gap: 30px; margin-bottom: 30px; }
+    .tab { cursor: pointer; font-weight: 700; color: var(--muted-tan); padding-bottom: 8px; border-bottom: 3px solid transparent; text-transform: uppercase; font-size: 13px; }
+    .tab.active { color: var(--accent-brown); border-bottom-color: var(--accent-brown); }
+
+    /* --- NOTES & MARKDOWN --- */
+    .notes-toolbar { display: flex; justify-content: flex-end; margin-bottom: 15px; }
+    .btn-toggle-icon { 
+        background: var(--muted-tan); color: white; border: none; 
+        width: 36px; height: 36px; border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: 0.2s; font-size: 14px;
+    }
+    .btn-toggle-icon:hover { background: var(--accent-brown); transform: scale(1.1); }
+
+    .notes-area { width: 100%; height: 450px; border: none; background: transparent; font-family: inherit; font-size: 15px; line-height: 1.8; resize: none; color: #4a372d; }
     
-    .input-wrapper { position: relative; display: flex; align-items: center; }
-    .add-input {
-      width: 100%;
-      padding: 12px 16px; border-radius: 10px;
-      border: 1px solid var(--border); background: var(--bg);
-      font-size: 14px; transition: var(--transition);
+    .markdown-body {
+        width: 100%; height: 450px; overflow-y: auto; font-size: 15px; line-height: 1.8; color: #4a372d;
     }
-    .add-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px var(--primary-soft); }
-    
-    .shortcut-hint {
-      position: absolute; right: 12px;
-      font-size: 10px; font-weight: 700; color: var(--text-secondary);
-      background: #eef0f5; padding: 2px 6px; border-radius: 4px;
-      pointer-events: none; border: 1px solid var(--border);
+    .markdown-body h1, .markdown-body h2 { border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-top: 20px;}
+    .markdown-body table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+    .markdown-body th, .markdown-body td { border: 1px solid var(--muted-tan); padding: 8px; text-align: left; }
+    .markdown-body tr:nth-child(even) { background: rgba(215, 204, 200, 0.1); }
+    .markdown-body a { color: var(--accent-brown); text-decoration: underline; }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(45, 30, 23, 0.6); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
     }
-
-    /* --- HORIZONTAL TOOLBAR --- */
-    .tool-bar { 
-      display: flex; 
-      flex-direction: row; /* Fixed to horizontal */
-      gap: 12px; 
-      justify-content: flex-start;
-    }
-
-    .drag-handle { cursor: grab; color: #cbd5e0; padding: 4px; user-select: none; font-size: 14px; }
-    .drag-handle:active { cursor: grabbing; }
-
-    .btn-circle {
-      width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
-      background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: var(--transition); color: var(--text-secondary); font-size: 16px;
-    }
-    .btn-circle:hover, .btn-circle:focus { background: var(--primary); color: white !important; border-color: var(--primary); }
-    .btn-circle.active { background: var(--accent-dark); color: white; border-color: var(--accent-dark); }
-
-    /* --- PROJECT CARDS --- */
-    .projects-grid { display: flex; flex-direction: column; gap: 8px; }
-    .project-card {
-      background: transparent; border: 1px solid transparent;
-      border-radius: var(--radius-lg); padding: 12px 16px;
-      cursor: pointer; transition: var(--transition);
-      display: flex; flex-direction: column; gap: 6px;
-    }
-    .project-card:hover { background: #f0f2f7; }
-    .project-card.selected { background: #fff; border-color: var(--border); box-shadow: var(--shadow); }
-    .project-card.selected .p-title { color: var(--primary); }
-
-    .p-header { display: flex; align-items: center; gap: 8px; }
-    .p-title { font-weight: 600; font-size: 15px; flex: 1; color: var(--text); }
-    .p-card-actions { display: flex; gap: 2px; opacity: 0; }
-    .project-card:hover .p-card-actions { opacity: 1; }
-    .p-stats { font-size: 11px; font-weight: 500; color: var(--text-secondary); margin-left: 28px; display: flex; justify-content: space-between; }
-
-    /* --- MAIN PANEL --- */
-    .main-content { padding: 48px; overflow-y: auto; display: flex; justify-content: center; position: relative; }
-    .panel {
-      background: var(--card-bg); border-radius: 20px; padding: 40px;
-      border: 1px solid var(--border); width: 100%; max-width: 760px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.02); height: fit-content; min-height: 560px;
-      margin-top: 60px;
-    }
-
-    .action-item { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #f1f1f4; background: #fff; }
-    .action-text { flex: 1; font-size: 15px; font-weight: 500; }
-    .action-text.done { text-decoration: line-through; color: var(--text-secondary); }
-    
-    .action-time-btn { 
-        font-family: 'JetBrains Mono'; font-size: 11px; color: var(--primary); 
-        background: var(--primary-soft); padding: 4px 8px; border-radius: 6px;
-        border: none; cursor: pointer; transition: 0.2s; font-weight: 600;
-    }
-    .action-time-btn:hover { background: var(--primary); color: white; }
-
-    .icon-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 6px; border-radius: 6px; transition: 0.2s; }
-    .icon-btn:hover { background: var(--bg); color: var(--primary); }
+    .modal-content { background: var(--paper-white); padding: 40px; border-radius: var(--radius); width: 450px; box-shadow: 0 40px 100px rgba(0,0,0,0.2); border-top: 10px solid var(--accent-brown); }
+    .btn-action { background: var(--success-green); color: white; border: none; padding: 12px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); }
 
     .hidden { display: none !important; }
-    .tab { padding: 8px 0; cursor: pointer; font-weight: 600; color: var(--text-secondary); border: none; background: none; font-size: 14px; margin-right: 28px; position: relative; }
-    .tab.active { color: var(--text); }
-    .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--primary); }
-
-    /* --- POMO DASH BOX --- */
-    .pomo-dash-container {
-        position: absolute; top: 20px; right: 48px;
-        background: #fff; border: 1px solid var(--border);
-        padding: 12px 16px; border-radius: 12px; box-shadow: var(--shadow);
-        display: flex; flex-direction: column; gap: 8px;
-    }
-    .pomo-dash-title { font-size: 10px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-    .pomo-dash-grid { display: flex; gap: 10px; align-items: flex-end; }
-    .pomo-day { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .pomo-bar { width: 14px; background: var(--bg); border-radius: 3px; position: relative; height: 40px; }
-    .pomo-bar-fill { position: absolute; bottom: 0; width: 100%; background: var(--primary); border-radius: 3px; transition: height 0.3s; }
-    .pomo-count { font-size: 9px; font-weight: 700; color: var(--accent-dark); }
-    .pomo-label { font-size: 9px; font-weight: 600; color: var(--text-secondary); }
-
-    .notes-area { width: 100%; min-height: 380px; border: 1px solid var(--border); font-family: inherit; font-size: 15px; padding: 20px; border-radius: 12px; resize: none; line-height: 1.6; }
   </style>
 </head>
 <body onkeydown="handleGlobalKeys(event)">
 
-  <div class="app-container">
+  <div class="app-container" id="app-shell">
     <aside class="sidebar">
-      <div class="header"><h1>Project Flow</h1></div>
-      
-      <div class="controls">
-        <div class="input-wrapper">
-            <input type="text" id="project-input" class="add-input" placeholder="+ Add new project..." tabindex="1" />
-            <span class="shortcut-hint">⌘K</span>
-        </div>
-        <div class="tool-bar">
-          <button class="btn-circle" id="pomo-btn" title="Click: Start | Hold: Set Time" tabindex="2" onkeydown="if(event.key==='Enter') togglePomo()"><i class="fas fa-stopwatch"></i></button>
-          <button class="btn-circle" onclick="exportData()" title="Export" tabindex="3"><i class="fas fa-download"></i></button>
-          <button class="btn-circle" onclick="document.getElementById('import-file').click()" title="Import" tabindex="4"><i class="fas fa-upload"></i></button>
-          <button class="btn-circle" onclick="clearAllData()" title="Clear All" tabindex="5"><i class="fas fa-trash-alt"></i></button>
-          <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
-        </div>
+      <div class="collapse-btn" onclick="toggleSidebar()" title="Toggle Sidebar"><i class="fas fa-bars"></i></div>
+      <div class="sidebar-header">Project Flow</div>
+      <div class="input-wrapper">
+        <input type="text" id="project-input" class="standard-input" placeholder="[/] New Project...">
       </div>
-
-      <div class="projects-grid" id="projects-grid"></div>
+      <div class="project-list" id="projects-grid"></div>
+      
+      <div class="sidebar-footer" style="margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 20px;">
+        <button class="standard-input" style="cursor:pointer; font-size: 12px;" onclick="exportData()">Export</button>
+        <button class="standard-input" style="cursor:pointer; font-size: 12px;" onclick="document.getElementById('import-file').click()">Import</button>
+        <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)" />
+      </div>
     </aside>
 
-    <main class="main-content">
-      <div class="pomo-dash-container">
-          <div class="pomo-dash-title">Last 7 Days Focus</div>
-          <div class="pomo-dash-grid" id="pomo-dash"></div>
+    <main class="main-view">
+      <div class="dashboard-container">
+          <div class="dash-title">Last 7 Days Focus</div>
+          <div class="dash-grid" id="dash-grid"></div>
       </div>
 
-      <div id="empty-state" style="text-align:center; margin-top:140px; color:var(--text-secondary);">
-        <i class="fas fa-briefcase fa-2x" style="opacity:0.15; margin-bottom:20px;"></i>
-        <p style="font-weight: 500;">Select a project to see tasks</p>
-        <p style="font-size:12px; opacity:0.6; margin-top:8px;">↑ ↓ Arrows to navigate | Enter to add tasks</p>
+      <div id="empty-state" style="text-align:center; margin-top: 100px; color: var(--primary-dark);">
+        <i class="fas fa-feather-alt fa-4x" style="opacity: 0.3; margin-bottom: 20px;"></i>
+        <p style="font-size: 20px; font-weight: 600; opacity: 0.6;">Select a project to begin.</p>
       </div>
 
-      <div id="actions-panel" class="panel hidden">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;">
-          <div><h2 id="panel-title" style="margin:0; font-size:32px; font-weight:800;"></h2></div>
-          <div id="timer-display" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--accent-dark); font-size:22px;"></div>
+      <div id="actions-panel" class="notebook hidden">
+        <div class="notebook-header">
+          <div style="flex:1">
+            <h1 id="panel-title" onclick="editActiveProjectName()"></h1>
+            <div id="project-stats" style="font-size: 13px; font-weight: 700; color: var(--muted-tan); margin-top: 5px; text-transform: uppercase;"></div>
+          </div>
+          <div id="timer-display-box" class="timer-display" title="Click: Start | Hold: Set Time">
+            <span id="timer-display" style="font-size: 20px; font-weight: bold;">25:00</span>
+          </div>
         </div>
 
-        <div style="border-bottom: 1px solid var(--border); margin-bottom: 32px; display: flex;">
-          <button class="tab active" onclick="switchTab('tasks')" id="tab-tasks" tabindex="100">Tasks</button>
-          <button class="tab" onclick="switchTab('notes')" id="tab-notes" tabindex="101">Notes</button>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('tasks')" id="tab-tasks">Procedure</div>
+          <div class="tab" onclick="switchTab('notes')" id="tab-notes">Notes</div>
         </div>
 
         <div id="tasks-content">
-          <input type="text" id="action-input" class="add-input" style="width:100%; margin-bottom:24px; padding:16px;" placeholder="What needs to be done?" tabindex="102" />
+          <input type="text" id="action-input" class="standard-input" style="margin-bottom: 25px; background:white; border: 1.5px solid #eee;" placeholder="Add a task...">
           <div id="active-actions"></div>
-          <div id="archived-actions" style="margin-top:32px; border-top:1px solid var(--border); padding-top:20px; opacity:0.6;"></div>
+          <div id="archived-actions" style="margin-top: 40px; border-top: 2px dashed var(--border-color); padding-top: 20px;"></div>
         </div>
 
         <div id="notes-content" class="hidden">
-          <textarea id="notes-area" class="notes-area" oninput="updateNotes()" tabindex="103"></textarea>
+          <div class="notes-toolbar">
+              <button id="preview-toggle-btn" class="btn-toggle-icon" onclick="toggleMarkdown()" title="Toggle Edit/Preview">
+                  <i id="toggle-icon" class="fas fa-pen"></i>
+              </button>
+          </div>
+          <textarea id="notes-area" class="notes-area hidden" oninput="updateNotes()" placeholder="Observations..."></textarea>
+          <div id="markdown-view" class="markdown-body"></div>
         </div>
       </div>
     </main>
   </div>
 
+  <div id="custom-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+          <h3 class="modal-title" id="modal-title" style="font-family: 'Special Elite'; font-size: 22px; margin-top: 0;">Edit</h3>
+          <input type="text" id="modal-input" class="standard-input" style="background: white; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: flex-end; gap: 12px;">
+              <button class="btn-action" style="background: var(--muted-tan)" onclick="closeModal()">Cancel</button>
+              <button class="btn-action" id="modal-confirm-btn">Confirm</button>
+          </div>
+      </div>
+  </div>
+
 <script>
+  const DEFAULT_MD = `# Project Notes\nUse this space for deep work logs.\n\n### Quick Guide\n- **Bold** for emphasis\n- [Link](https://google.com)\n\n| Task | Status |\n| :--- | :--- |\n| Research | Done |\n| Build | Active |\n\nClick the **pencil icon** above to start writing.`;
+
   let projects = JSON.parse(localStorage.getItem('pf-v12')) || [];
   let pomoHistory = JSON.parse(localStorage.getItem('pf-pomo-v12')) || [];
   let activeId = null;
   let dragSource = null;
+  let isModalOpen = false;
+  let isMarkdownMode = true; 
   
   let defaultMins = 25;
   let pomoSecs = defaultMins * 60;
@@ -229,100 +282,78 @@
   let longHoldTimer = null;
 
   function init() {
-    cleanPomoHistory();
     render();
     setupPomoEvents();
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    document.querySelector('.shortcut-hint').innerText = isMac ? '⌘K' : 'Ctrl+K';
+    renderDashboard();
   }
 
-  function handleDrop(e, targetId, type) {
-    e.preventDefault();
-    if (!dragSource || dragSource.type !== type) return;
-    let list = type === 'project' ? projects : projects.find(x => x.id === activeId).actions;
-    const fromIdx = list.findIndex(x => x.id === dragSource.id);
-    const toIdx = list.findIndex(x => x.id === targetId);
-    const [moved] = list.splice(fromIdx, 1);
-    list.splice(toIdx, 0, moved);
-    save();
-  }
-
-  function cleanPomoHistory() {
-    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-    pomoHistory = pomoHistory.filter(t => t > sevenDaysAgo);
-    localStorage.setItem('pf-pomo-v12', JSON.stringify(pomoHistory));
-  }
-
-  function logPomoCompletion() {
-    pomoHistory.push(Date.now());
-    localStorage.setItem('pf-pomo-v12', JSON.stringify(pomoHistory));
-    renderPomoDash();
-  }
-
-  function renderPomoDash() {
-    const dash = document.getElementById('pomo-dash');
-    dash.innerHTML = '';
-    const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    const today = new Date();
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(); d.setDate(today.getDate() - i); d.setHours(0,0,0,0);
-        const endD = new Date(d); endD.setHours(23,59,59,999);
-        const count = pomoHistory.filter(t => t >= d.getTime() && t <= endD.getTime()).length;
-        const fillHeight = Math.min(count * 6, 40);
-        const dayEl = document.createElement('div');
-        dayEl.className = 'pomo-day';
-        dayEl.innerHTML = `<span class="pomo-count">${count}</span><div class="pomo-bar"><div class="pomo-bar-fill" style="height: ${fillHeight}px"></div></div><span class="pomo-label">${days[d.getDay()]}</span>`;
-        dash.appendChild(dayEl);
+  function playAlertSound() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    function playNote(freq, start, duration) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.1, start + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
     }
+    const now = ctx.currentTime;
+    playNote(659.25, now, 0.5);
+    playNote(783.99, now + 0.15, 0.5);
+    playNote(1318.51, now + 0.3, 0.8);
   }
 
-  function logManualTime(actionId) {
-    const p = projects.find(x => x.id === activeId);
-    const a = p.actions.find(x => x.id === actionId);
-    const val = prompt("Enter minutes spent on this task:", Math.round((a.timeSpent || 0) / 60));
-    if (val !== null) {
-        const mins = parseInt(val);
-        if (!isNaN(mins) && mins >= 0) { a.timeSpent = mins * 60; save(); }
-    }
+  function toggleSidebar() { document.getElementById('app-shell').classList.toggle('collapsed'); }
+
+  function openBrewModal(title, defaultValue, callback, isPrompt = true) {
+      isModalOpen = true;
+      const modal = document.getElementById('custom-modal');
+      const input = document.getElementById('modal-input');
+      document.getElementById('modal-title').innerText = title;
+      if(isPrompt) { input.classList.remove('hidden'); input.value = defaultValue; setTimeout(() => input.focus(), 50); } 
+      else { input.classList.add('hidden'); }
+      modal.classList.remove('hidden');
+      const confirm = () => { callback(isPrompt ? input.value : true); closeModal(); };
+      document.getElementById('modal-confirm-btn').onclick = confirm;
+      input.onkeydown = (e) => { if(e.key === 'Enter') confirm(); if(e.key === 'Escape') { e.stopPropagation(); closeModal(); } };
   }
 
-  function formatTime(secs) {
-    if (!secs || secs < 0) return "0m";
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  }
-
-  function getProjectTotalTime(p) {
-    const total = p.actions.reduce((sum, a) => sum + (a.timeSpent || 0), 0);
-    return formatTime(total);
-  }
+  function closeModal() { document.getElementById('custom-modal').classList.add('hidden'); isModalOpen = false; }
 
   function setupPomoEvents() {
-    const btn = document.getElementById('pomo-btn');
-    btn.onmousedown = () => {
+    const box = document.getElementById('timer-display-box');
+    box.onmousedown = () => {
       longHoldTimer = setTimeout(() => {
-        const n = prompt("Set pomo duration (minutes):", defaultMins);
-        if (n && !isNaN(n)) { defaultMins = parseInt(n); pomoSecs = defaultMins * 60; updateTimerDisplay(); }
-        btn.dataset.isLongHold = "true";
-      }, 700); 
+        openBrewModal("Set Duration (mins)", defaultMins, (val) => {
+            if (val && !isNaN(val)) { defaultMins = parseInt(val); pomoSecs = defaultMins * 60; updateTimerDisplay(); }
+        });
+        box.dataset.isLongHold = "true";
+      }, 700);
     };
-    btn.onmouseup = () => {
+    box.onmouseup = () => {
       clearTimeout(longHoldTimer);
-      if (btn.dataset.isLongHold !== "true") togglePomo();
-      btn.dataset.isLongHold = "false";
+      if (box.dataset.isLongHold !== "true") togglePomo();
+      box.dataset.isLongHold = "false";
     };
   }
 
   function togglePomo() {
-    if (isPomoRunning) { clearInterval(pomoTimer); isPomoRunning = false; }
+    if (isPomoRunning) { clearInterval(pomoTimer); isPomoRunning = false; document.title = "Project Flow"; } 
     else {
       isPomoRunning = true;
       pomoTimer = setInterval(() => {
         pomoSecs--;
-        if (pomoSecs <= 0) { 
-          clearInterval(pomoTimer); isPomoRunning = false; playBeep(); 
-          logPomoCompletion(); alert("Focus session complete!"); pomoSecs = defaultMins * 60; 
+        if (pomoSecs <= 0) {
+          clearInterval(pomoTimer); isPomoRunning = false;
+          pomoHistory.push(Date.now()); save();
+          playAlertSound(); 
+          alert("Focus session complete!"); 
+          pomoSecs = defaultMins * 60;
         }
         updateTimerDisplay();
       }, 1000);
@@ -333,115 +364,169 @@
   function updateTimerDisplay() {
     const m = Math.floor(pomoSecs / 60), s = pomoSecs % 60;
     const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    const p = projects.find(x => x.id === activeId);
-    document.title = isPomoRunning ? `${timeStr} (${p ? p.name : 'Focus'})` : "ProjectFlow";
-    document.getElementById('timer-display').innerText = isPomoRunning ? timeStr : "";
-    document.getElementById('pomo-btn').classList.toggle('active', isPomoRunning);
+    document.getElementById('timer-display').innerText = timeStr;
+    document.getElementById('timer-display-box').classList.toggle('active', isPomoRunning);
+    if(isPomoRunning) {
+        const p = projects.find(x => x.id === activeId);
+        document.title = `(${timeStr}) Focus: ${p ? p.name : 'Active'}`;
+    } else { document.title = "Project Flow"; }
+  }
+
+  function renderDashboard() {
+    const grid = document.getElementById('dash-grid');
+    grid.innerHTML = '';
+    const days = ['S','M','T','W','T','F','S'];
+    const today = new Date();
+    for(let i=6; i>=0; i--) {
+        const d = new Date(); d.setDate(today.getDate() - i);
+        const dayLabel = days[d.getDay()];
+        const dateKey = d.setHours(0,0,0,0);
+        const count = pomoHistory.filter(t => new Date(t).setHours(0,0,0,0) === dateKey).length;
+        const barHeight = count === 0 ? 4 : Math.min((count / 12) * 40, 40);
+        const dayEl = document.createElement('div');
+        dayEl.className = 'dash-day';
+        dayEl.innerHTML = `
+            <span class="dash-count">${count}</span>
+            <div class="dash-bar"><div class="dash-bar-fill" style="height:${barHeight}px; opacity: ${count === 0 ? '0.3' : '1'}"></div></div>
+            <span class="dash-label">${dayLabel}</span>
+        `;
+        grid.appendChild(dayEl);
+    }
   }
 
   function render() {
     const grid = document.getElementById('projects-grid');
     grid.innerHTML = '';
-    projects.forEach((p) => {
-      const card = document.createElement('div');
-      card.className = `project-card ${activeId === p.id ? 'selected' : ''}`;
-      card.draggable = true;
-      card.onclick = () => openPanel(p.id);
-      card.ondragstart = (e) => { dragSource = { type: 'project', id: p.id }; e.target.style.opacity = '0.5'; };
-      card.ondragover = (e) => e.preventDefault();
-      card.ondrop = (e) => handleDrop(e, p.id, 'project');
-      card.ondragend = (e) => e.target.style.opacity = '1';
-      card.innerHTML = `
-        <div class="p-header"><div class="drag-handle">⋮⋮</div><div class="p-title">${p.name}</div>
-        <div class="p-card-actions">
-            <button class="icon-btn" onclick="event.stopPropagation(); editProjectName('${p.id}')"><i class="fas fa-pencil-alt"></i></button>
-            <button class="icon-btn" onclick="event.stopPropagation(); deleteProject('${p.id}')"><i class="fas fa-trash-alt"></i></button>
-        </div></div>
-        <div class="p-stats"><span>${p.actions.filter(a => a.done).length}/${p.actions.length} Tasks</span><span style="color:var(--primary); font-family:'JetBrains Mono'">${getProjectTotalTime(p)}</span></div>`;
-      grid.appendChild(card);
+    projects.forEach(p => {
+      const el = document.createElement('div');
+      el.className = `project-item ${activeId === p.id ? 'active' : ''}`;
+      el.draggable = true;
+      el.onclick = () => { activeId = p.id; isMarkdownMode = true; render(); };
+      el.ondragstart = (e) => { dragSource = { type: 'project', id: p.id }; };
+      el.ondragover = e => e.preventDefault();
+      el.ondrop = e => handleDrop(e, p.id, 'project');
+      el.innerHTML = `<div class="p-title-row"><span style="font-weight:700">${p.name}</span><div class="p-actions"><button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" onclick="event.stopPropagation(); deleteProject('${p.id}')"><i class="fas fa-trash"></i></button></div></div><div class="p-meta">${p.actions.filter(a=>a.done).length}/${p.actions.length} tasks</div>`;
+      grid.appendChild(el);
     });
     if (activeId) {
-      renderActions();
       document.getElementById('empty-state').classList.add('hidden');
       document.getElementById('actions-panel').classList.remove('hidden');
+      renderActions();
     } else {
       document.getElementById('empty-state').classList.remove('hidden');
       document.getElementById('actions-panel').classList.add('hidden');
     }
+    renderDashboard();
     updateTimerDisplay();
-    renderPomoDash();
   }
 
   function renderActions() {
     const p = projects.find(x => x.id === activeId);
-    const activeList = document.getElementById('active-actions'), archList = document.getElementById('archived-actions');
-    activeList.innerHTML = ''; archList.innerHTML = '';
+    if(!p) return;
     document.getElementById('panel-title').innerText = p.name;
     document.getElementById('notes-area').value = p.notes || "";
-    p.actions.forEach((a) => {
-      const item = document.createElement('div');
-      item.className = 'action-item';
-      item.draggable = true;
-      item.ondragstart = (e) => { dragSource = { type: 'action', id: a.id }; e.target.style.opacity = '0.5'; };
-      item.ondragover = (e) => e.preventDefault();
-      item.ondrop = (e) => handleDrop(e, a.id, 'action');
-      item.ondragend = (e) => e.target.style.opacity = '1';
-      item.innerHTML = `<div class="drag-handle">⋮⋮</div><input type="checkbox" style="accent-color:var(--primary); width:18px; height:18px;" ${a.done ? 'checked' : ''} onchange="toggleAction('${a.id}')"><div class="action-text ${a.done ? 'done' : ''}">${a.text}</div><button class="action-time-btn" onclick="logManualTime('${a.id}')">${formatTime(a.timeSpent)}</button><button class="icon-btn" onclick="editActionText('${a.id}')"><i class="fas fa-pencil-alt"></i></button><button class="icon-btn" onclick="deleteAction('${a.id}')"><i class="fas fa-trash-alt"></i></button>`;
-      (a.done ? archList : activeList).appendChild(item);
+    
+    const markdownView = document.getElementById('markdown-view');
+    const notesArea = document.getElementById('notes-area');
+    const toggleIcon = document.getElementById('toggle-icon');
+    
+    if(isMarkdownMode) {
+        markdownView.innerHTML = marked.parse(p.notes || DEFAULT_MD);
+        markdownView.classList.remove('hidden');
+        notesArea.classList.add('hidden');
+        toggleIcon.className = "fas fa-pen";
+    } else {
+        markdownView.classList.add('hidden');
+        notesArea.classList.remove('hidden');
+        toggleIcon.className = "fas fa-eye";
+        notesArea.focus();
+    }
+
+    document.getElementById('project-stats').innerText = `Total Session: ${formatTime(p.actions.reduce((s,a)=>s+(a.timeSpent||0), 0))}`;
+    const activeList = document.getElementById('active-actions'), archList = document.getElementById('archived-actions');
+    activeList.innerHTML = ''; archList.innerHTML = '';
+    p.actions.forEach(a => {
+      const row = document.createElement('div');
+      row.className = 'task-item';
+      row.draggable = true;
+      row.ondragstart = e => { dragSource = { type: 'task', id: a.id }; };
+      row.ondragover = e => e.preventDefault();
+      row.ondrop = e => handleDrop(e, a.id, 'task');
+      row.innerHTML = `<div class="drag-handle" style="cursor:grab; opacity:0.3">::</div><input type="checkbox" ${a.done ? 'checked' : ''} onchange="toggleAction('${a.id}')"><span class="task-text ${a.done ? 'done' : ''}" onclick="editActionText('${a.id}')">${a.text}</span><span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${a.id}')">${formatTime(a.timeSpent)}</span><button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${a.id}')"><i class="fas fa-times"></i></button>`;
+      (a.done ? archList : activeList).appendChild(row);
     });
   }
 
-  function openPanel(id) { activeId = id; render(); }
-  function save() { localStorage.setItem('pf-v12', JSON.stringify(projects)); render(); }
-  
+  function toggleMarkdown() {
+      isMarkdownMode = !isMarkdownMode;
+      renderActions();
+  }
+
+  function handleDrop(e, targetId, type) {
+    e.preventDefault();
+    if (!dragSource || dragSource.type !== type) return;
+    let list = type === 'project' ? projects : projects.find(x => x.id === activeId).actions;
+    const fromIdx = list.findIndex(x => x.id === dragSource.id), toIdx = list.findIndex(x => x.id === targetId);
+    const [moved] = list.splice(fromIdx, 1); list.splice(toIdx, 0, moved); save();
+  }
+
+  function formatTime(s) { const m = Math.floor((s||0)/60); return m > 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`; }
+  function logManualTime(aId) { openBrewModal("Log Time", "25", (val) => { if(val) { const a = projects.find(x=>x.id===activeId).actions.find(x=>x.id===aId); a.timeSpent = (a.timeSpent||0) + (parseInt(val)*60); save(); } }); }
+  function editActiveProjectName() { const p = projects.find(x=>x.id===activeId); openBrewModal("Rename Project", p.name, (n) => { if(n) { p.name = n; save(); }}); }
+  function editActionText(id) { const a = projects.find(x=>x.id===activeId).actions.find(x=>x.id===id); openBrewModal("Edit Task", a.text, (n) => { if(n) { a.text = n; save(); }}); }
+  function deleteProject(id) { openBrewModal("Remove this project?", "", (confirmed) => { if(confirmed) { projects = projects.filter(p=>p.id!==id); if(activeId===id) activeId=null; save(); } }, false); }
+  function toggleAction(id) { const a = projects.find(x=>x.id===activeId).actions.find(x=>x.id===id); a.done = !a.done; save(); }
+  function deleteAction(id) { const p = projects.find(x=>x.id===activeId); p.actions = p.actions.filter(a=>a.id!==id); save(); }
+  function updateNotes() { const p = projects.find(x=>x.id===activeId); p.notes = document.getElementById('notes-area').value; localStorage.setItem('pf-v12', JSON.stringify(projects)); }
+
   function handleGlobalKeys(e) {
-    if (e.key === 'Escape') { e.preventDefault(); location.reload(); return; }
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('project-input').focus(); return; }
+    if (e.key === 'Escape' && isModalOpen) { closeModal(); return; }
+    if (e.key === 'Escape') { activeId = null; document.activeElement.blur(); render(); return; }
+    if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) { e.preventDefault(); document.getElementById('project-input').focus(); return; }
     
-    // NEW LOGIC: If a project is selected and user hits Enter, focus the add-action input
-    if (e.key === 'Enter' && activeId && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-        e.preventDefault();
-        const actionInput = document.getElementById('action-input');
-        if (actionInput) actionInput.focus();
-        return;
-    }
-
     if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
-      const idx = projects.findIndex(p => p.id === activeId);
-      if (e.key === 'ArrowDown') { e.preventDefault(); openPanel((projects[idx+1] || projects[0]).id); }
-      if (e.key === 'ArrowUp') { e.preventDefault(); openPanel((projects[idx-1] || projects[projects.length-1]).id); }
+        if (e.key === 'Enter' && activeId) { e.preventDefault(); document.getElementById('action-input').focus(); return; }
+        
+        const idx = projects.findIndex(p => p.id === activeId);
+        let newActiveId = null;
+
+        if (e.key === 'ArrowDown' && idx < projects.length - 1) newActiveId = projects[idx+1].id;
+        if (e.key === 'ArrowUp' && idx > 0) newActiveId = projects[idx-1].id;
+
+        if (newActiveId) {
+            activeId = newActiveId;
+            render();
+            // Scroll logic
+            const activeEl = document.querySelector('.project-item.active');
+            if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     }
   }
 
-  function editProjectName(id) { const p = projects.find(x => x.id === id); const n = prompt("Rename:", p.name); if (n) { p.name = n; save(); } }
-  function editActionText(id) { const p = projects.find(x => x.id === activeId); const a = p.actions.find(x => x.id === id); const n = prompt("Edit:", a.text); if (n) { a.text = n; save(); } }
-  function toggleAction(id) { const p = projects.find(x => x.id === activeId); const a = p.actions.find(x => x.id === id); a.done = !a.done; save(); }
-  function deleteProject(id) { if(confirm("Delete?")) { projects = projects.filter(p => p.id !== id); if(activeId === id) activeId = null; save(); } }
-  function deleteAction(id) { const p = projects.find(x => x.id === activeId); p.actions = p.actions.filter(a => a.id !== id); save(); }
-  function clearAllData() { if(confirm("Clear ALL?")) { projects = []; pomoHistory = []; activeId = null; save(); } }
-  function updateNotes() { const p = projects.find(x => x.id === activeId); if(p) { p.notes = document.getElementById('notes-area').value; localStorage.setItem('pf-v12', JSON.stringify(projects)); } }
-  function playBeep() { const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.type = 'sine'; osc.frequency.value = 880; gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1); osc.start(); osc.stop(ctx.currentTime + 1); }
   function exportData() {
-    // Generate a timestamp: YYYY-MM-DD_HH-MM
-    const now = new Date();
-    const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
-    const timeStr = now.getHours().toString().padStart(2, '0') + '-' + 
-                    now.getMinutes().toString().padStart(2, '0');
-    
-    const fileName = `ProjectFlowBackup_${dateStr}_${timeStr}.json`;
-    
-    const blob = new Blob([JSON.stringify({projects, pomoHistory}, null, 2)], { type: "application/json" });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(a.href); // Clean up memory
+    const blob = new Blob([JSON.stringify({projects, pomoHistory})], {type: 'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ProjectFlow_Backup_${Date.now()}.json`; a.click();
   }
-  function importData(e) { const reader = new FileReader(); reader.onload = (ev) => { const data = JSON.parse(ev.target.result); projects = data.projects || data; pomoHistory = data.pomoHistory || []; save(); location.reload(); }; reader.readAsText(e.target.files[0]); }
-  function switchTab(tab) { document.getElementById('tab-tasks').classList.toggle('active', tab === 'tasks'); document.getElementById('tab-notes').classList.toggle('active', tab === 'notes'); document.getElementById('tasks-content').classList.toggle('hidden', tab !== 'tasks'); document.getElementById('notes-content').classList.toggle('hidden', tab !== 'notes'); }
 
-  document.getElementById('project-input').onkeydown = (e) => { if(e.key === 'Enter' && e.target.value.trim()) { projects.push({ id: Date.now().toString(), name: e.target.value, actions: [], notes: "" }); activeId = projects[projects.length-1].id; e.target.value = ''; save(); } };
-  document.getElementById('action-input').onkeydown = (e) => { if(e.key === 'Enter' && e.target.value.trim()) { const p = projects.find(x => x.id === activeId); p.actions.push({ id: Date.now().toString(), text: e.target.value, done: false, timeSpent: 0 }); e.target.value = ''; save(); } };
+  function importData(e) {
+    const reader = new FileReader();
+    reader.onload = ev => { const d = JSON.parse(ev.target.result); projects = d.projects || []; pomoHistory = d.pomoHistory || []; save(); location.reload(); };
+    reader.readAsText(e.target.files[0]);
+  }
+
+  function switchTab(t) {
+    document.getElementById('tab-tasks').classList.toggle('active', t==='tasks');
+    document.getElementById('tab-notes').classList.toggle('active', t==='notes');
+    document.getElementById('tasks-content').classList.toggle('hidden', t!=='tasks');
+    document.getElementById('notes-content').classList.toggle('hidden', t!=='notes');
+    if(t === 'notes') isMarkdownMode = true; 
+    renderActions();
+  }
+
+  function save() { localStorage.setItem('pf-v12', JSON.stringify(projects)); localStorage.setItem('pf-pomo-v12', JSON.stringify(pomoHistory)); render(); }
+
+  document.getElementById('project-input').onkeydown = e => { if(e.key==='Enter' && e.target.value) { const id = Date.now().toString(); projects.push({id, name: e.target.value, actions: [], notes: DEFAULT_MD}); activeId = id; e.target.value=''; save(); }};
+  document.getElementById('action-input').onkeydown = e => { if(e.key==='Enter' && e.target.value) { projects.find(x=>x.id===activeId).actions.push({id: Date.now().toString(), text: e.target.value, done:false, timeSpent: 0}); e.target.value=''; save(); }};
 
   init();
 </script>
