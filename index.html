@@ -368,7 +368,7 @@
     document.getElementById('timer-display-box').classList.toggle('active', isPomoRunning);
     if(isPomoRunning) {
         const p = projects.find(x => x.id === activeId);
-        document.title = `(${timeStr}) Focus: ${p ? p.name : 'Active'}`;
+        document.title = `(${timeStr}) ${p ? p.name : 'Active'}`;
     } else { document.title = "Project Flow"; }
   }
 
