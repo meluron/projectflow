@@ -30,6 +30,48 @@
       margin: 0; height: 100vh; display: flex; overflow: hidden;
     }
 
+    /* --- MOBILE WARNING --- */
+    #mobile-warning {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg-warm);
+      background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .warning-content {
+      background: var(--paper-white);
+      padding: 40px 30px;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      border-top: 8px solid var(--accent-brown);
+      max-width: 320px;
+    }
+
+    .warning-content h2 {
+      font-family: 'Special Elite', cursive;
+      color: var(--accent-brown);
+      margin: 20px 0 10px;
+    }
+
+    .warning-content p {
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--primary-dark);
+      font-size: 14px;
+    }
+
+    /* Logic: Show warning on PHONES (width < 768px), allow TABLETS (iPad) */
+    @media only screen and (max-width: 767px) {
+      #mobile-warning { display: flex; }
+    }
+
+    /* --- APP LAYOUT --- */
     .app-container { 
       display: grid; 
       grid-template-columns: 320px 1fr; 
@@ -191,6 +233,14 @@
   </style>
 </head>
 <body onkeydown="handleGlobalKeys(event)">
+
+  <div id="mobile-warning">
+    <div class="warning-content">
+      <i class="fas fa-desktop fa-3x" style="color: var(--muted-tan)"></i>
+      <h2>Desktop Preferred</h2>
+      <p>Project Flow works great on computers and tablets, but it's a bit too big for phone screens! Switch devices for the best experience.</p>
+    </div>
+  </div>
 
   <div class="app-container" id="app-shell">
     <aside class="sidebar">
@@ -364,8 +414,10 @@
   function updateTimerDisplay() {
     const m = Math.floor(pomoSecs / 60), s = pomoSecs % 60;
     const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    document.getElementById('timer-display').innerText = timeStr;
-    document.getElementById('timer-display-box').classList.toggle('active', isPomoRunning);
+    const timerDisplay = document.getElementById('timer-display');
+    if(timerDisplay) timerDisplay.innerText = timeStr;
+    const timerBox = document.getElementById('timer-display-box');
+    if(timerBox) timerBox.classList.toggle('active', isPomoRunning);
     if(isPomoRunning) {
         const p = projects.find(x => x.id === activeId);
         document.title = `(${timeStr}) ${p ? p.name : 'Active'}`;
@@ -496,7 +548,6 @@
         if (newActiveId) {
             activeId = newActiveId;
             render();
-            // Scroll logic
             const activeEl = document.querySelector('.project-item.active');
             if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
