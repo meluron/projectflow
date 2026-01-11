@@ -139,6 +139,7 @@
         padding: 15px 20px; border-radius: var(--radius); box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         display: flex; flex-direction: column; align-items: center;
         min-width: 220px; gap: 15px;
+        z-index: 1;
     }
     .dash-title { 
         font-size: 10px; font-weight: 800; text-transform: uppercase; 
@@ -160,10 +161,23 @@
     }
 
     .notebook {
-      background: var(--paper-white); width: 100%; max-width: 800px;
-      min-height: 750px; border-radius: 2px; padding: 50px;
+      background: var(--paper-white);
+      width: 100%;
+      max-width: 800px;
+      
+      /* UPDATED: Height is relative to the screen height */
+      height: calc(100vh - 120px); 
+      margin: 0 auto;
+      
+      border-radius: 2px;
+      padding: 40px 50px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-      border-left: 45px solid #dcd3cb; position: relative;
+      border-left: 45px solid #dcd3cb;
+      position: relative;
+
+      /* ADDED: This makes the inside of the notebook behave like a column */
+      display: flex;
+      flex-direction: column;
     }
 
     .notebook-header {
@@ -172,6 +186,24 @@
     }
 
     #panel-title { margin: 0; font-family: 'Special Elite', cursive; font-size: 32px; color: var(--primary-dark); cursor: pointer; }
+
+    #tasks-content, #notes-content {
+    flex: 1; /* Takes up remaining space */
+    overflow-y: auto; /* Enables vertical scrolling */
+    padding-right: 10px; /* Space for the scrollbar */
+    }
+
+    #tasks-content::-webkit-scrollbar, 
+    #notes-content::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    #tasks-content::-webkit-scrollbar-thumb, 
+    #notes-content::-webkit-scrollbar-thumb {
+      background: var(--muted-tan);
+      border-radius: 10px;
+    }
+
 
     .timer-display {
       width: 80px; height: 80px; border-radius: 50%;
@@ -198,14 +230,30 @@
         cursor: pointer; transition: 0.2s; font-size: 14px;
     }
     .btn-toggle-icon:hover { background: var(--accent-brown); transform: scale(1.1); }
-    
-    .notes-area { width: 100%; height: 450px; border: none; background: transparent; font-family: inherit; font-size: 15px; line-height: 1.8; resize: none; color: #4a372d; }
+    .notes-area, .markdown-body { 
+        width: 100%; 
+        /* Remove height: 450px or 100% */
+        height: auto; 
+        min-height: 100%; /* Ensures it fills the space if empty */
+        overflow-y: visible; /* Prevent the inner scrollbar from appearing */
+        
+        font-family: inherit; 
+        font-size: 15px; 
+        line-height: 1.8; 
+        color: #4a372d; 
+        border: none;
+        background: transparent;
+        resize: none;
+    }
+
+    #notes-content {
+        flex: 1;
+        overflow-y: auto; /* This keeps your aesthetic scrollbar */
+        padding-right: 15px;
+    }
     
     /* --- MARKDOWN STYLING (Including Tables) --- */
-    .markdown-body { 
-        width: 100%; height: 450px; overflow-y: auto; 
-        font-size: 15px; line-height: 1.8; color: #4a372d; 
-    }
+    
     .markdown-body table { 
         border-collapse: collapse; 
         width: 100%; 
@@ -233,7 +281,27 @@
       background: rgba(45, 30, 23, 0.6); backdrop-filter: blur(4px);
       display: flex; align-items: center; justify-content: center; z-index: 1000;
     }
-    .modal-content { background: var(--paper-white); padding: 40px; border-radius: var(--radius); width: 450px; box-shadow: 0 40px 100px rgba(0,0,0,0.2); border-top: 10px solid var(--accent-brown); position: relative; }
+    .modal-content {
+      background: var(--paper-white);
+      padding: 40px;
+      border-radius: var(--radius);
+      width: 450px; /* This is the default, but our Guide overrides it inline */
+      box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+      border-top: 10px solid var(--accent-brown);
+      position: relative;
+      
+      /* ADD THESE LINES */
+      max-height: 90vh;    /* Ensures it doesn't exceed 90% of screen height */
+      overflow-y: auto;    /* Adds a scrollbar if content is too tall */
+    }
+
+    .modal-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .modal-content::-webkit-scrollbar-thumb {
+      background: var(--muted-tan);
+      border-radius: 10px;
+    }
     
     kbd {
         background-color: #eee;
@@ -457,6 +525,8 @@
   let pomoTimer = null;
   let isPomoRunning = false;
   let longHoldTimer = null;
+  let pomoEndTime = null; // New: stores when the timer should finish
+  let pomoRemainingAtPause = defaultMins * 60 * 1000; // New: stores ms remaining
 
   function init() {
     render();
@@ -523,7 +593,18 @@
     box.onmousedown = () => {
       longHoldTimer = setTimeout(() => {
         openBrewModal("Set Duration (mins)", defaultMins, (val) => {
-            if (val && !isNaN(val)) { defaultMins = parseInt(val); pomoSecs = defaultMins * 60; updateTimerDisplay(); }
+          if (val && !isNaN(val)) { 
+            // 1. Update the default preference
+            defaultMins = parseInt(val); 
+            
+            // 2. Update the seconds for the visual display
+            pomoSecs = defaultMins * 60; 
+            
+            // 3. CRITICAL: Update the millisecond buffer used by the timestamp logic
+            pomoRemainingAtPause = defaultMins * 60 * 1000; 
+            
+            updateTimerDisplay(); 
+          }
         });
         box.dataset.isLongHold = "true";
       }, 700);
@@ -536,36 +617,77 @@
   }
 
   function togglePomo() {
-    if (isPomoRunning) { clearInterval(pomoTimer); isPomoRunning = false; document.title = "Project Flow"; } 
-    else {
-      isPomoRunning = true;
-      pomoTimer = setInterval(() => {
-        pomoSecs--;
-        if (pomoSecs <= 0) {
-          clearInterval(pomoTimer); isPomoRunning = false;
-          pomoHistory.push(Date.now()); save();
-          playAlertSound(); 
-          alert("Focus session complete!"); 
-          pomoSecs = defaultMins * 60;
-        }
-        updateTimerDisplay();
-      }, 1000);
-    }
-    updateTimerDisplay();
+      if (isPomoRunning) {
+          // PAUSE: Store exactly how many milliseconds are left
+          pomoRemainingAtPause = pomoEndTime - Date.now();
+          clearInterval(pomoTimer);
+          isPomoRunning = false;
+          document.title = "Project Flow";
+      } else {
+          isPomoRunning = true;
+          // START/RESUME: Set the finish line relative to the current time
+          pomoEndTime = Date.now() + pomoRemainingAtPause;
+
+          pomoTimer = setInterval(() => {
+              const now = Date.now();
+              const distance = pomoEndTime - now;
+
+              if (distance <= 0) {
+                  clearInterval(pomoTimer);
+                  isPomoRunning = false;
+                  
+                  // Reset the buffer to the current default for the next session
+                  pomoRemainingAtPause = defaultMins * 60 * 1000;
+                  pomoSecs = defaultMins * 60; // Reset visual seconds
+                  
+                  pomoHistory.push(Date.now());
+                  save();
+                  playAlertSound();
+                  alert("Focus session complete!");
+              } else {
+                  // Keep the visual helper variable in sync
+                  pomoSecs = Math.floor(distance / 1000);
+              }
+              updateTimerDisplay();
+          }, 1000);
+      }
+      updateTimerDisplay();
   }
+
+  function refreshTabTitle() {
+    // 1. Find the active project name if it exists
+    const p = projects.find(x => x.id === activeId);
+    const projectName = p ? p.name : 'Work';
+
+    // 2. Decide what the title should be based on the timer state
+    if (isPomoRunning) {
+        // Only show that it IS running, not the actual seconds
+        const activeTitle = `● ${projectName} (Active)`;
+        if (document.title !== activeTitle) {
+            document.title = activeTitle;
+        }
+    } else {
+        // Return to default when paused or stopped
+        if (document.title !== "Project Flow") {
+            document.title = "Project Flow";
+        }
+    }
+}
 
   function updateTimerDisplay() {
     const m = Math.floor(pomoSecs / 60), s = pomoSecs % 60;
     const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    
+    // Update the visual timer on the notebook page
     const timerDisplay = document.getElementById('timer-display');
     if(timerDisplay) timerDisplay.innerText = timeStr;
+    
     const timerBox = document.getElementById('timer-display-box');
     if(timerBox) timerBox.classList.toggle('active', isPomoRunning);
-    if(isPomoRunning) {
-        const p = projects.find(x => x.id === activeId);
-        document.title = `(${timeStr}) ${p ? p.name : 'Active'}`;
-    } else { document.title = "Project Flow"; }
-  }
+
+    // Call the new title logic
+    refreshTabTitle();
+}
 
   function renderDashboard() {
     const grid = document.getElementById('dash-grid');
@@ -677,25 +799,36 @@
   function handleGlobalKeys(e) {
     if (e.key === 'Escape' && isModalOpen) { closeModal(); closeGuide(); return; }
     if (e.key === 'Escape') { activeId = null; document.activeElement.blur(); render(); return; }
-    if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) { e.preventDefault(); document.getElementById('project-input').focus(); return; }
+    if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) { 
+        e.preventDefault(); 
+        document.getElementById('project-input').focus(); 
+        return; 
+    }
     
     if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
         if (e.key === 'Enter' && activeId) { e.preventDefault(); document.getElementById('action-input').focus(); return; }
         
-        const idx = projects.findIndex(p => p.id === activeId);
-        let newActiveId = null;
+        // --- UPDATED SECTION ---
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            // This stops the main page from scrolling!
+            e.preventDefault(); 
+            
+            const idx = projects.findIndex(p => p.id === activeId);
+            let newActiveId = null;
 
-        if (e.key === 'ArrowDown' && idx < projects.length - 1) newActiveId = projects[idx+1].id;
-        if (e.key === 'ArrowUp' && idx > 0) newActiveId = projects[idx-1].id;
+            if (e.key === 'ArrowDown' && idx < projects.length - 1) newActiveId = projects[idx+1].id;
+            if (e.key === 'ArrowUp' && idx > 0) newActiveId = projects[idx-1].id;
 
-        if (newActiveId) {
-            activeId = newActiveId;
-            render();
-            const activeEl = document.querySelector('.project-item.active');
-            if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (newActiveId) {
+                activeId = newActiveId;
+                render();
+                const activeEl = document.querySelector('.project-item.active');
+                if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
+        // --- END UPDATED SECTION ---
     }
-  }
+}
 
   function exportData() {
     const blob = new Blob([JSON.stringify({projects, pomoHistory})], {type: 'application/json'});
