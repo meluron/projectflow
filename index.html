@@ -326,11 +326,11 @@
 
       .notebook-header {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column; /* Stack Title and Description vertically */
         align-items: flex-start;
-        margin-bottom: 40px;
+        margin-bottom: 30px;
         border-bottom: 2px solid #f5f1ed;
-        padding-bottom: 30px;
+        padding-bottom: 20px;
       }
 
       #panel-title {
@@ -585,6 +585,19 @@
 
       .hidden {
         display: none !important;
+      }
+
+      .project-item.active .p-member-list {
+        color: var(--paper-white) !important;
+        opacity: 0.9;
+      }
+
+      .p-member-list {
+        font-size: 10px;
+        margin-top: 5px;
+        color: var(--accent-brown); /* Default color for non-active items */
+        font-weight: bold;
+        transition: color 0.2s;
       }
     </style>
   </head>
@@ -1204,24 +1217,42 @@
           };
           el.ondragover = (e) => e.preventDefault();
           el.ondrop = (e) => handleDrop(e, p.id, "project");
+
+          // Map members to clickable spans for removal
+          const memberHtml = (p.members || [])
+            .map(
+              (m) =>
+                `<span onclick="event.stopPropagation(); removeMember('project', '${p.id}', '${m}')" title="Click to remove">${m}</span>`
+            )
+            .join(", ");
+
           el.innerHTML = `
             <div class="p-title-row">
                 <span style="font-weight:700">${p.name}</span>
                 <div class="p-actions">
-                <button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" onclick="event.stopPropagation(); deleteProject('${
-                  p.id
-                }')">
-                    <i class="fas fa-trash"></i>
-                </button>
+                    <button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" onclick="event.stopPropagation(); addProjectMember('${
+                      p.id
+                    }')">
+                        <i class="fas fa-user-plus" title="Add Member"></i>
+                    </button>
+                    <button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" onclick="event.stopPropagation(); deleteProject('${
+                      p.id
+                    }')">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
             <div class="p-meta">
-            ${formatDate(p.createdAt)} • ${
+                ${formatDate(p.createdAt)} • ${
             p.actions.filter((a) => a.done).length
           }/${p.actions.length} tasks
+            </div>
+            <div class="p-member-list">
+                ${p.members && p.members.length > 0 ? "👥 " + memberHtml : ""}
             </div>`;
           grid.appendChild(el);
         });
+
         if (activeId) {
           document.getElementById("empty-state").classList.add("hidden");
           document.getElementById("actions-panel").classList.remove("hidden");
@@ -1237,9 +1268,26 @@
       function renderActions() {
         const p = projects.find((x) => x.id === activeId);
         if (!p) return;
-        document.getElementById("panel-title").innerText = p.name;
-        document.getElementById("notes-area").value = p.notes || "";
 
+        // 1. Update Header Title
+        document.getElementById("panel-title").innerText = p.name;
+
+        // 2. Handle Project Description (Goal)
+        let descEl = document.getElementById("project-description");
+        if (!descEl) {
+          descEl = document.createElement("div");
+          descEl.id = "project-description";
+          descEl.style =
+            "font-size: 14px; color: var(--accent-brown); opacity: 0.8; margin-top: 8px; cursor: pointer; font-style: italic; line-height: 1.4;";
+          descEl.onclick = editProjectDescription;
+          // Inserts the description right under the Title
+          document.getElementById("panel-title").after(descEl);
+        }
+        descEl.innerText =
+          p.description || "Click to add a project goal or description...";
+
+        // 3. Update Notes Area
+        document.getElementById("notes-area").value = p.notes || "";
         const markdownView = document.getElementById("markdown-view");
         const notesArea = document.getElementById("notes-area");
         const toggleIcon = document.getElementById("toggle-icon");
@@ -1256,15 +1304,19 @@
           notesArea.focus();
         }
 
+        // 4. Update Project Stats
         document.getElementById(
           "project-stats"
         ).innerText = `Total Session: ${formatTime(
           p.actions.reduce((s, a) => s + (a.timeSpent || 0), 0)
         )}`;
+
+        // 5. Render Tasks (Actions)
         const activeList = document.getElementById("active-actions"),
           archList = document.getElementById("archived-actions");
         activeList.innerHTML = "";
         archList.innerHTML = "";
+
         p.actions.forEach((a) => {
           const row = document.createElement("div");
           row.className = "task-item";
@@ -1274,27 +1326,53 @@
           };
           row.ondragover = (e) => e.preventDefault();
           row.ondrop = (e) => handleDrop(e, a.id, "task");
+
+          // Map task members to clickable spans for removal
+          const taskMemberHtml = (a.members || [])
+            .map(
+              (m) =>
+                `<span onclick="removeMember('task', '${a.id}', '${m}')" style="cursor:pointer; text-decoration:underline;" title="Click to remove">${m}</span>`
+            )
+            .join(", ");
+
           row.innerHTML = `
-        <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
-        <input type="checkbox" ${
-          a.done ? "checked" : ""
-        } onchange="toggleAction('${a.id}')">
-        <span class="task-text ${
-          a.done ? "done" : ""
-        }" onclick="editActionText('${a.id}')">
-            ${a.text} 
-            <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(
-              a.createdAt
-            )}</small>
-        </span>
-        <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${
-          a.id
-        }')">${formatTime(a.timeSpent)}</span>
-        <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${
-          a.id
-        }')">
-            <i class="fas fa-times"></i>
-        </button>`;
+            <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
+            <input type="checkbox" ${
+              a.done ? "checked" : ""
+            } onchange="toggleAction('${a.id}')">
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <span class="task-text ${
+                  a.done ? "done" : ""
+                }" onclick="editActionText('${a.id}')">
+                    ${a.text} 
+                    <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(
+                      a.createdAt
+                    )}</small>
+                </span>
+                <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
+                    ${
+                      a.members && a.members.length > 0
+                        ? "Assigned: " + taskMemberHtml
+                        : ""
+                    }
+                </small>
+            </div>
+            <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${
+              a.id
+            }')">
+                ${formatTime(a.timeSpent)}
+            </span>
+            <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${
+              a.id
+            }')" title="Assign Person">
+                <i class="fas fa-user-plus"></i>
+            </button>
+            <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${
+              a.id
+            }')">
+                <i class="fas fa-times"></i>
+            </button>`;
+
           (a.done ? archList : activeList).appendChild(row);
         });
       }
@@ -1441,6 +1519,54 @@
         }
       }
 
+      // Function to add a project member
+      function addProjectMember(projId) {
+        openBrewModal("Add Project Member", "", (name) => {
+          if (name && name.trim() !== "") {
+            const p = projects.find((x) => x.id === projId);
+            if (!p.members) p.members = [];
+            p.members.push(name.trim());
+            save();
+          }
+        });
+      }
+
+      // Function to remove a member (Project or Task)
+      function removeMember(type, parentId, memberName) {
+        const message = `Remove "${memberName}" from this ${type}?`;
+        openBrewModal(
+          message,
+          "",
+          (confirmed) => {
+            if (confirmed) {
+              if (type === "project") {
+                const p = projects.find((x) => x.id === parentId);
+                p.members = p.members.filter((m) => m !== memberName);
+              } else {
+                const p = projects.find((x) => x.id === activeId);
+                const a = p.actions.find((x) => x.id === parentId);
+                a.members = a.members.filter((m) => m !== memberName);
+              }
+              save();
+            }
+          },
+          false
+        ); // false means it's a confirmation, not a text input
+      }
+
+      // Function to add a task member
+      function addTaskMember(taskId) {
+        openBrewModal("Assign Person to Task", "", (name) => {
+          if (name && name.trim() !== "") {
+            const p = projects.find((x) => x.id === activeId);
+            const a = p.actions.find((x) => x.id === taskId);
+            if (!a.members) a.members = [];
+            a.members.push(name.trim());
+            save();
+          }
+        });
+      }
+
       function exportData() {
         const blob = new Blob([JSON.stringify({ projects, pomoHistory })], {
           type: "application/json",
@@ -1489,6 +1615,20 @@
         renderActions();
       }
 
+      function editProjectDescription() {
+        const p = projects.find((x) => x.id === activeId);
+        openBrewModal(
+          "Project Goal / Description",
+          p.description || "",
+          (val) => {
+            if (val !== null) {
+              p.description = val;
+              save();
+            }
+          }
+        );
+      }
+
       function save() {
         localStorage.setItem("pf-v12", JSON.stringify(projects));
         localStorage.setItem("pf-pomo-v12", JSON.stringify(pomoHistory));
@@ -1497,14 +1637,28 @@
 
       document.getElementById("project-input").onkeydown = (e) => {
         if (e.key === "Enter" && e.target.value) {
+          let rawText = e.target.value;
+          let members = [];
+          const mentionRegex = /@(\w+)/g;
+          let match;
+
+          while ((match = mentionRegex.exec(rawText)) !== null) {
+            members.push(match[1]);
+          }
+
+          let cleanText = rawText.replace(mentionRegex, "").trim();
           const id = Date.now().toString();
+
           projects.push({
             id,
-            name: e.target.value,
+            name: cleanText,
             actions: [],
+            members: members,
+            description: "Click to add a project goal or description...", // Added this line
             notes: DEFAULT_MD,
-            createdAt: new Date().toISOString(), // Added this line
+            createdAt: new Date().toISOString(),
           });
+
           activeId = id;
           e.target.value = "";
           save();
@@ -1512,15 +1666,31 @@
       };
       document.getElementById("action-input").onkeydown = (e) => {
         if (e.key === "Enter" && e.target.value) {
+          let rawText = e.target.value;
+          let members = [];
+
+          // Regex to find all @names (e.g., @Sarah @John)
+          const mentionRegex = /@(\w+)/g;
+          let match;
+
+          while ((match = mentionRegex.exec(rawText)) !== null) {
+            members.push(match[1]); // match[1] is the name without the @
+          }
+
+          // Clean the text by removing the @mentions and extra spaces
+          let cleanText = rawText.replace(mentionRegex, "").trim();
+
           projects
             .find((x) => x.id === activeId)
             .actions.push({
               id: Date.now().toString(),
-              text: e.target.value,
+              text: cleanText,
               done: false,
+              members: members, // Automatically populated from the @mentions
               timeSpent: 0,
-              createdAt: new Date().toISOString(), // Added this line
+              createdAt: new Date().toISOString(),
             });
+
           e.target.value = "";
           save();
         }
