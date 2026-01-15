@@ -1301,9 +1301,11 @@
           copyBtn.style =
             "width: 28px; height: 28px; font-size: 11px; flex-shrink: 0; background: rgba(192, 160, 128, 0.2); color: var(--accent-brown);";
           copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-
-          descContainer.appendChild(descText);
+          copyBtn.title = "Copy Description";
+        
           descContainer.appendChild(copyBtn);
+          descContainer.appendChild(descText);
+          
           document.getElementById("panel-title").after(descContainer);
         }
 
