@@ -1598,13 +1598,31 @@
       }
 
       function exportData() {
+        const now = new Date();
+
+        // Extract date components
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+
+        // Extract time components
+        const hours = String(now.getHours()).padStart(2, "0");
+        const mins = String(now.getMinutes()).padStart(2, "0");
+
+        // Construct the readable filename
+        const datestring = `${year}-${month}-${day}_${hours}-${mins}`;
+
         const blob = new Blob([JSON.stringify({ projects, pomoHistory })], {
           type: "application/json",
         });
+
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `ProjectFlow_Backup_${Date.now()}.json`;
+        a.download = `projectflow_backup_${datestring}.json`;
         a.click();
+
+        // Clean up the URL object to free up memory
+        URL.revokeObjectURL(a.href);
       }
 
       function importData(e) {
