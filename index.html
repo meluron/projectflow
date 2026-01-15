@@ -1135,7 +1135,7 @@
         if (isPomoRunning) {
           clearInterval(pomoTimer);
           isPomoRunning = false;
-          document.title = "Project Flow";
+          updateTimerDisplay(); // Refresh title to "Paused"
         } else {
           isPomoRunning = true;
           pomoTimer = setInterval(() => {
@@ -1146,13 +1146,18 @@
               pomoHistory.push(Date.now());
               save();
               playAlertSound();
+
+              // --- UPDATED FINISHED STATE ---
+              document.title = "✅ Session Complete!";
               alert("Focus session complete!");
+
               pomoSecs = defaultMins * 60;
+              updateTimerDisplay(); // Resets title to default after alert
+            } else {
+              updateTimerDisplay();
             }
-            updateTimerDisplay();
           }, 1000);
         }
-        updateTimerDisplay();
       }
 
       function updateTimerDisplay() {
@@ -1162,15 +1167,30 @@
           2,
           "0"
         )}`;
+
         const timerDisplay = document.getElementById("timer-display");
         if (timerDisplay) timerDisplay.innerText = timeStr;
+
         const timerBox = document.getElementById("timer-display-box");
         if (timerBox) timerBox.classList.toggle("active", isPomoRunning);
+
+        // --- UPDATED TITLE LOGIC ---
+        const activeProject = projects.find((x) => x.id === activeId);
+        const projectName = activeProject
+          ? activeProject.name
+          : "Active Session";
+
         if (isPomoRunning) {
-          const p = projects.find((x) => x.id === activeId);
-          document.title = `(${timeStr}) ${p ? p.name : "Active"}`;
+          // Shows a "Recording" dot and project name without the ticking numbers
+          document.title = `🔴 ${projectName} | In Progress`;
         } else {
-          document.title = "Project Flow";
+          // If the timer is exactly at the start/reset point, show default
+          if (pomoSecs === defaultMins * 60) {
+            document.title = "Project Flow";
+          } else {
+            // This shows when you PAUSE the timer
+            document.title = `⏸ Paused: ${projectName}`;
+          }
         }
       }
 
