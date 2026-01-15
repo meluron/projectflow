@@ -962,7 +962,15 @@
           </div>
 
           <div id="notes-content" class="hidden">
-            <div class="notes-toolbar">
+            <div class="notes-toolbar" style="gap: 10px">
+              <button
+                class="btn-toggle-icon"
+                onclick="const p = projects.find(x => x.id === activeId); copyToClipboard(p.notes || '', this)"
+                title="Copy Notes"
+              >
+                <i class="fas fa-copy"></i>
+              </button>
+
               <button
                 id="preview-toggle-btn"
                 class="btn-toggle-icon"
@@ -1273,21 +1281,50 @@
         // 1. Update Header Title
         document.getElementById("panel-title").innerText = p.name;
 
-        // 2. Handle Project Description (Goal)
-        let descEl = document.getElementById("project-description");
-        if (!descEl) {
-          descEl = document.createElement("div");
-          descEl.id = "project-description";
-          descEl.style =
-            "font-size: 14px; color: var(--accent-brown); opacity: 0.8; margin-top: 8px; cursor: pointer; font-style: italic; line-height: 1.4;";
-          descEl.onclick = editProjectDescription;
-          // Inserts the description right under the Title
-          document.getElementById("panel-title").after(descEl);
-        }
-        descEl.innerText =
-          p.description || "Click to add a project goal or description...";
+        // 2. Handle Project Description (Goal) & Copy Button
+        let descContainer = document.getElementById("desc-container");
+        if (!descContainer) {
+          descContainer = document.createElement("div");
+          descContainer.id = "desc-container";
+          descContainer.style =
+            "display: flex; align-items: center; gap: 10px; margin-top: 8px; width: 100%;";
 
-        // 3. Update Notes Area
+          const descText = document.createElement("div");
+          descText.id = "project-description";
+          descText.style =
+            "font-size: 14px; color: var(--accent-brown); opacity: 0.8; cursor: pointer; font-style: italic; line-height: 1.4; flex: 1;";
+          descText.onclick = editProjectDescription;
+
+          const copyBtn = document.createElement("button");
+          copyBtn.id = "copy-desc-btn";
+          copyBtn.className = "btn-toggle-icon";
+          copyBtn.style =
+            "width: 28px; height: 28px; font-size: 11px; flex-shrink: 0; background: rgba(192, 160, 128, 0.2); color: var(--accent-brown);";
+          copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+
+          descContainer.appendChild(descText);
+          descContainer.appendChild(copyBtn);
+          document.getElementById("panel-title").after(descContainer);
+        }
+
+        // Update description content and its copy button event
+        document.getElementById("project-description").innerText =
+          p.description || "Click to add a project goal or description...";
+        document.getElementById("copy-desc-btn").onclick = () =>
+          copyToClipboard(
+            p.description || "",
+            document.getElementById("copy-desc-btn")
+          );
+
+        // 3. Restore/Update Project Stats (Date and Time)
+        const totalTime = p.actions.reduce((s, a) => s + (a.timeSpent || 0), 0);
+        document.getElementById("project-stats").innerHTML = `
+    Created: ${formatDate(p.createdAt)} • Total Session: ${formatTime(
+          totalTime
+        )}
+  `;
+
+        // 4. Update Notes Area
         document.getElementById("notes-area").value = p.notes || "";
         const markdownView = document.getElementById("markdown-view");
         const notesArea = document.getElementById("notes-area");
@@ -1305,13 +1342,6 @@
           notesArea.focus();
         }
 
-        // 4. Update Project Stats
-        document.getElementById(
-          "project-stats"
-        ).innerText = `Total Session: ${formatTime(
-          p.actions.reduce((s, a) => s + (a.timeSpent || 0), 0)
-        )}`;
-
         // 5. Render Tasks (Actions)
         const activeList = document.getElementById("active-actions"),
           archList = document.getElementById("archived-actions");
@@ -1328,7 +1358,6 @@
           row.ondragover = (e) => e.preventDefault();
           row.ondrop = (e) => handleDrop(e, a.id, "task");
 
-          // Map task members to clickable spans for removal
           const taskMemberHtml = (a.members || [])
             .map(
               (m) =>
@@ -1337,42 +1366,42 @@
             .join(", ");
 
           row.innerHTML = `
-            <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
-            <input type="checkbox" ${
-              a.done ? "checked" : ""
-            } onchange="toggleAction('${a.id}')">
-            <div style="flex: 1; display: flex; flex-direction: column;">
-                <span class="task-text ${
-                  a.done ? "done" : ""
-                }" onclick="editActionText('${a.id}')">
-                    ${a.text} 
-                    <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(
-                      a.createdAt
-                    )}</small>
-                </span>
-                <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
-                    ${
-                      a.members && a.members.length > 0
-                        ? "Assigned: " + taskMemberHtml
-                        : ""
-                    }
-                </small>
-            </div>
-            <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${
-              a.id
-            }')">
-                ${formatTime(a.timeSpent)}
-            </span>
-            <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${
-              a.id
-            }')" title="Assign Person">
-                <i class="fas fa-user-plus"></i>
-            </button>
-            <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${
-              a.id
-            }')">
-                <i class="fas fa-times"></i>
-            </button>`;
+      <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
+      <input type="checkbox" ${
+        a.done ? "checked" : ""
+      } onchange="toggleAction('${a.id}')">
+      <div style="flex: 1; display: flex; flex-direction: column;">
+          <span class="task-text ${
+            a.done ? "done" : ""
+          }" onclick="editActionText('${a.id}')">
+              ${a.text} 
+              <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(
+                a.createdAt
+              )}</small>
+          </span>
+          <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
+              ${
+                a.members && a.members.length > 0
+                  ? "Assigned: " + taskMemberHtml
+                  : ""
+              }
+          </small>
+      </div>
+      <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${
+        a.id
+      }')">
+          ${formatTime(a.timeSpent)}
+      </span>
+      <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${
+        a.id
+      }')" title="Assign Person">
+          <i class="fas fa-user-plus"></i>
+      </button>
+      <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${
+        a.id
+      }')">
+          <i class="fas fa-times"></i>
+      </button>`;
 
           (a.done ? archList : activeList).appendChild(row);
         });
@@ -1614,6 +1643,30 @@
           .classList.toggle("hidden", t !== "notes");
         if (t === "notes") isMarkdownMode = true;
         renderActions();
+      }
+
+      async function copyToClipboard(text, btnElement) {
+        try {
+          await navigator.clipboard.writeText(text);
+
+          // Get the icon inside the button to give feedback
+          const icon = btnElement.querySelector("i");
+          const originalClass = icon.className;
+
+          // Change icon to a checkmark and turn the button green
+          icon.className = "fas fa-check";
+          btnElement.style.background = "var(--success-green)";
+          btnElement.style.color = "white";
+
+          // Revert back to original state after 2 seconds
+          setTimeout(() => {
+            icon.className = originalClass;
+            btnElement.style.background = "";
+            btnElement.style.color = "";
+          }, 2000);
+        } catch (err) {
+          console.error("Failed to copy: ", err);
+        }
       }
 
       function editProjectDescription() {
