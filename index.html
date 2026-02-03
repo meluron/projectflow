@@ -1510,12 +1510,23 @@
 
         if (!p.issues) p.issues = [];
 
-        // Generate the next ID in sequence starting from #101
-        const displayId = `#${p.issues.length + 101}`;
+        // FIND HIGHEST EXISTING ID TO PREVENT CONSECUTIVE DUPLICATES
+        // We scan existing issues, extract the number from [#101], and find the max.
+        let nextIdNumber = 101;
+        if (p.issues.length > 0) {
+          const ids = p.issues.map((i) => {
+            // Extract numbers from strings like "#105"
+            const num = parseInt(i.issueIdDisplay.replace("#", ""));
+            return isNaN(num) ? 0 : num;
+          });
+          nextIdNumber = Math.max(...ids) + 1;
+        }
+
+        const displayId = `#${nextIdNumber}`;
 
         p.issues.push({
           id: Date.now().toString(),
-          issueIdDisplay: displayId, // This is what the render function looks for
+          issueIdDisplay: displayId,
           text: input.value.trim(),
           status: "open",
           createdAt: new Date().toISOString(),
