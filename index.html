@@ -2014,17 +2014,22 @@
       }
 
       function handleGlobalKeys(e) {
+        // 1. Handle Modal and Guide closing
         if (e.key === "Escape" && isModalOpen) {
           closeModal();
           closeGuide();
           return;
         }
+
+        // 2. Handle Clear Focus / Deselect (only if not in an input)
         if (e.key === "Escape") {
           activeId = null;
           document.activeElement.blur();
           render();
           return;
         }
+
+        // 3. Global Shortcut: Jump to New Project Input
         if (
           e.key === "/" &&
           !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
@@ -2034,38 +2039,81 @@
           return;
         }
 
+        // 4. Contextual Shortcuts (Only when not already typing)
         if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+          // --- UPDATED: Contextual Enter Key ---
           if (e.key === "Enter" && activeId) {
             e.preventDefault();
-            document.getElementById("action-input").focus();
+
+            const currentTabBtn = document.querySelector(".tab.active");
+            if (currentTabBtn) {
+              const currentTabId = currentTabBtn.id.replace("tab-", "");
+
+              // Map of Tab IDs to their respective Input IDs
+              const inputMap = {
+                tasks: "action-input",
+                learnings: "learning-desc-input",
+                issues: "issue-input",
+                planner: "plan-desc",
+              };
+
+              const targetInputId = inputMap[currentTabId];
+              if (targetInputId) {
+                document.getElementById(targetInputId).focus();
+              } else if (currentTabId === "notes") {
+                // Special case for Notes: Toggle edit mode and focus
+                if (isMarkdownMode) toggleMarkdown();
+                document.getElementById("notes-area").focus();
+              }
+            }
             return;
           }
 
-          // --- UPDATED SECTION ---
+          // --- Tab Navigation (Left/Right) ---
+          const tabOrder = ["tasks", "notes", "learnings", "issues", "planner"];
+          if (activeId && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+            e.preventDefault();
+            const currentTabBtn = document.querySelector(".tab.active");
+            if (currentTabBtn) {
+              const currentTabId = currentTabBtn.id.replace("tab-", "");
+              let currentIndex = tabOrder.indexOf(currentTabId);
+
+              if (e.key === "ArrowRight") {
+                currentIndex = (currentIndex + 1) % tabOrder.length;
+              } else if (e.key === "ArrowLeft") {
+                currentIndex =
+                  (currentIndex - 1 + tabOrder.length) % tabOrder.length;
+              }
+
+              switchTab(tabOrder[currentIndex]);
+            }
+          }
+
+          // --- Project Navigation (Up/Down) ---
           if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-            // This stops the main page from scrolling!
             e.preventDefault();
 
             const idx = projects.findIndex((p) => p.id === activeId);
             let newActiveId = null;
 
-            if (e.key === "ArrowDown" && idx < projects.length - 1)
+            if (e.key === "ArrowDown" && idx < projects.length - 1) {
               newActiveId = projects[idx + 1].id;
-            if (e.key === "ArrowUp" && idx > 0)
+            } else if (e.key === "ArrowUp" && idx > 0) {
               newActiveId = projects[idx - 1].id;
+            }
 
             if (newActiveId) {
               activeId = newActiveId;
               render();
               const activeEl = document.querySelector(".project-item.active");
-              if (activeEl)
+              if (activeEl) {
                 activeEl.scrollIntoView({
                   behavior: "smooth",
                   block: "nearest",
                 });
+              }
             }
           }
-          // --- END UPDATED SECTION ---
         }
       }
 
