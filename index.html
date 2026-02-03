@@ -342,19 +342,28 @@
       }
 
       #tasks-content,
-      #notes-content {
-        flex: 1; /* Takes up remaining space */
-        overflow-y: auto; /* Enables vertical scrolling */
-        padding-right: 10px; /* Space for the scrollbar */
+      #notes-content,
+      #learnings-content,
+      #issues-content,
+      #planner-content {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 10px;
       }
 
       #tasks-content::-webkit-scrollbar,
-      #notes-content::-webkit-scrollbar {
+      #notes-content::-webkit-scrollbar,
+      #learnings-content::-webkit-scrollbar,
+      #issues-content::-webkit-scrollbar,
+      #planner-content::-webkit-scrollbar {
         width: 5px;
       }
 
       #tasks-content::-webkit-scrollbar-thumb,
-      #notes-content::-webkit-scrollbar-thumb {
+      #notes-content::-webkit-scrollbar-thumb,
+      #learnings-content::-webkit-scrollbar-thumb,
+      #issues-content::-webkit-scrollbar-thumb,
+      #planner-content::-webkit-scrollbar-thumb {
         background: var(--muted-tan);
         border-radius: 10px;
       }
