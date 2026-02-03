@@ -610,6 +610,33 @@
         font-weight: bold;
         transition: color 0.2s;
       }
+
+      .issue-tooltip {
+        position: absolute;
+        background: var(--paper-white);
+        border: 1px solid var(--accent-brown);
+        padding: 12px 16px;
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        font-size: 13px;
+        z-index: 9999;
+        max-width: 280px;
+        color: var(--primary-dark);
+        line-height: 1.5;
+        border-top: 4px solid var(--accent-brown);
+        /* Remove pointer-events: none to allow interaction if needed */
+        pointer-events: auto;
+        /* Prevent the tooltip from flickering when appearing */
+        transition: opacity 0.2s ease;
+      }
+
+      .tooltip-status {
+        display: block;
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
     </style>
   </head>
   <body onkeydown="handleGlobalKeys(event)">
@@ -940,11 +967,15 @@
           </div>
 
           <div class="tabs">
-            <div class="tab active" onclick="switchTab('tasks')" id="tab-tasks">
-              Actions
+            <div
+              class="tab active"
+              onclick="switchTab('issues')"
+              id="tab-issues"
+            >
+              Issues
             </div>
-            <div class="tab" onclick="switchTab('notes')" id="tab-notes">
-              Notes
+            <div class="tab" onclick="switchTab('tasks')" id="tab-tasks">
+              Actions
             </div>
             <div
               class="tab"
@@ -953,8 +984,8 @@
             >
               Learnings
             </div>
-            <div class="tab" onclick="switchTab('issues')" id="tab-issues">
-              Issues
+            <div class="tab" onclick="switchTab('notes')" id="tab-notes">
+              Notes
             </div>
             <div class="tab" onclick="switchTab('planner')" id="tab-planner">
               Planner
@@ -1080,7 +1111,7 @@
                   type="text"
                   id="issue-input"
                   class="standard-input"
-                  placeholder="What is the blocker or bug?"
+                  placeholder="What is the issue?"
                   onkeydown="if (event.key === 'Enter') addIssue();"
                 />
                 <button
@@ -1417,6 +1448,7 @@
             activeId = p.id;
             isMarkdownMode = true;
             render();
+            switchTab("issues");
           };
           el.ondragstart = (e) => {
             dragSource = { type: "project", id: p.id };
@@ -1478,10 +1510,14 @@
 
         if (!p.issues) p.issues = [];
 
+        // Generate the next ID in sequence starting from #101
+        const displayId = `#${p.issues.length + 101}`;
+
         p.issues.push({
           id: Date.now().toString(),
+          issueIdDisplay: displayId, // This is what the render function looks for
           text: input.value.trim(),
-          status: "open", // 'open' or 'resolved'
+          status: "open",
           createdAt: new Date().toISOString(),
         });
 
@@ -1513,6 +1549,35 @@
         });
       }
 
+      function jumpToIssue(displayId) {
+        // 1. Switch to the Issues tab
+        switchTab("issues");
+
+        // 2. Clear the search input so the target issue isn't filtered out
+        const searchInput = document.getElementById("issue-search");
+        if (searchInput) {
+          searchInput.value = "";
+          renderActions();
+        }
+
+        // 3. Find the element and scroll to it
+        // We'll search for the text content containing our bracketed ID
+        setTimeout(() => {
+          const issueElements = document.querySelectorAll(
+            "#issues-list .task-item",
+          );
+          for (let el of issueElements) {
+            if (el.textContent.includes(`[${displayId}]`)) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              // Optional: brief flash effect to highlight it
+              el.style.backgroundColor = "rgba(166, 99, 99, 0.2)";
+              setTimeout(() => (el.style.backgroundColor = ""), 2000);
+              break;
+            }
+          }
+        }, 100);
+      }
+
       // Function to format YYYY-MM-DD to DD-MM-YYYY for display
       function formatDisplayDate(dateStr) {
         if (!dateStr) return "";
@@ -1530,16 +1595,55 @@
 
         if (!p.meetings) p.meetings = [];
 
+        let rawText = descIn.value.trim();
+        let members = [];
+
+        // Regex to detect @mentions
+        const mentionRegex = /@(\w+)/g;
+        let match;
+        while ((match = mentionRegex.exec(rawText)) !== null) {
+          members.push(match[1]);
+        }
+
+        // Clean the description text by removing the @mentions
+        let cleanText = rawText.replace(mentionRegex, "").trim();
+
         p.meetings.push({
           id: Date.now().toString(),
           date: dateIn.value,
           time: timeIn.value || "00:00",
-          text: descIn.value.trim(),
+          text: cleanText,
+          members: members, // Added members array
           createdAt: new Date().toISOString(),
         });
 
         descIn.value = "";
         save();
+      }
+
+      function removeMember(type, parentId, memberName) {
+        const message = `Remove "${memberName}" from this ${type}?`;
+        openBrewModal(
+          message,
+          "",
+          (confirmed) => {
+            if (confirmed) {
+              const p = projects.find((x) => x.id === activeId);
+              if (type === "project") {
+                p.members = p.members.filter((m) => m !== memberName);
+              } else if (type === "task") {
+                const a = p.actions.find((x) => x.id === parentId);
+                a.members = a.members.filter((m) => m !== memberName);
+              } else if (type === "meeting") {
+                // Added meeting support
+                const mt = p.meetings.find((x) => x.id === parentId);
+                mt.members = mt.members.filter((m) => m !== memberName);
+              }
+              save();
+            }
+          },
+          false,
+        );
       }
 
       function editMeeting(id) {
@@ -1642,6 +1746,63 @@
         );
       }
 
+      function linkify(text) {
+        if (!text) return "";
+        return text.replace(/(#\d{3,})/g, (match) => {
+          return `<span class="issue-link" 
+                  onclick="event.stopPropagation(); hideIssueTooltip(); jumpToIssue('${match}')" 
+                  onmouseenter="showIssueTooltip(event, '${match}')" 
+                  onmouseleave="hideIssueTooltip()"
+                  style="color:var(--accent-brown); cursor:pointer; text-decoration:underline; font-weight:bold;">${match}</span>`;
+        });
+      }
+
+      let currentTooltip = null;
+
+      function showIssueTooltip(event, displayId) {
+        // Remove any existing tooltip first to prevent "ghost" popups
+        hideIssueTooltip();
+
+        const p = projects.find((x) => x.id === activeId);
+        const issue = p.issues
+          ? p.issues.find((i) => i.issueIdDisplay === displayId)
+          : null;
+
+        currentTooltip = document.createElement("div");
+        currentTooltip.className = "issue-tooltip";
+
+        if (issue) {
+          const statusColor =
+            issue.status === "resolved" ? "var(--success-green)" : "#a66363";
+          currentTooltip.innerHTML = `
+      <span class="tooltip-status" style="color: ${statusColor}">${issue.status}</span>
+      <strong style="display:block; margin-bottom:4px;">${issue.text}</strong>
+      <small style="opacity:0.6; font-size:9px;">Created: ${formatDate(issue.createdAt)}</small>
+    `;
+        } else {
+          currentTooltip.innerHTML = `<i style="opacity:0.6">No issue found</i>`;
+        }
+
+        document.body.appendChild(currentTooltip);
+        moveIssueTooltip(event);
+      }
+
+      // NEW: Follow the mouse cursor for a smoother feel
+      function moveIssueTooltip(event) {
+        if (currentTooltip) {
+          const offset = 15; // Distance from cursor
+          currentTooltip.style.left = `${event.pageX + offset}px`;
+          currentTooltip.style.top = `${event.pageY - (currentTooltip.offsetHeight + offset)}px`;
+        }
+      }
+
+      function hideIssueTooltip() {
+        if (currentTooltip) {
+          currentTooltip.remove();
+          currentTooltip = null;
+        }
+      }
+
       function renderActions() {
         const p = projects.find((x) => x.id === activeId);
         if (!p) return;
@@ -1722,31 +1883,31 @@
               .join(", ");
 
             row.innerHTML = `
-                <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
-                <input type="checkbox" ${a.done ? "checked" : ""} onchange="toggleAction('${a.id}')">
-                <div style="flex: 1; display: flex; flex-direction: column;">
-                    <span class="task-text ${a.done ? "done" : ""}" onclick="editActionText('${a.id}')">
-                        ${a.text} 
-                        <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(a.createdAt)}</small>
-                    </span>
-                    <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
-                        ${a.members && a.members.length > 0 ? "Assigned: " + taskMemberHtml : ""}
-                    </small>
-                </div>
-                <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${a.id}')">
-                    ${formatTime(a.timeSpent)}
-                </span>
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${a.id}')">
-                    <i class="fas fa-user-plus"></i>
-                </button>
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${a.id}')">
-                    <i class="fas fa-times"></i>
-                </button>`;
+          <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
+          <input type="checkbox" ${a.done ? "checked" : ""} onchange="toggleAction('${a.id}')">
+          <div style="flex: 1; display: flex; flex-direction: column;">
+              <span class="task-text ${a.done ? "done" : ""}" onclick="editActionText('${a.id}')">
+                  ${linkify(a.text)} 
+                  <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(a.createdAt)}</small>
+              </span>
+              <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
+                  ${a.members && a.members.length > 0 ? "Assigned: " + taskMemberHtml : ""}
+              </small>
+          </div>
+          <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${a.id}')">
+              ${formatTime(a.timeSpent)}
+          </span>
+          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${a.id}')">
+              <i class="fas fa-user-plus"></i>
+          </button>
+          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${a.id}')">
+              <i class="fas fa-times"></i>
+          </button>`;
             (a.done ? archList : activeList).appendChild(row);
           });
         }
 
-        // 5. Render Notes Tab
+        // 5. Render Notes Tab (Linked Markdown)
         const notesArea = document.getElementById("notes-area");
         const markdownView = document.getElementById("markdown-view");
         const toggleIcon = document.getElementById("toggle-icon");
@@ -1754,7 +1915,9 @@
         if (notesArea && markdownView) {
           notesArea.value = p.notes || "";
           if (isMarkdownMode) {
-            markdownView.innerHTML = marked.parse(p.notes || DEFAULT_MD);
+            markdownView.innerHTML = marked.parse(
+              linkify(p.notes || DEFAULT_MD),
+            );
             markdownView.classList.remove("hidden");
             notesArea.classList.add("hidden");
             if (toggleIcon) toggleIcon.className = "fas fa-pen";
@@ -1772,44 +1935,37 @@
           const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
           learningsList.innerHTML = "";
 
-          const learningData = p.events || [];
-          const filtered = learningData
-            .filter((e) => {
-              const displayDate = formatDisplayDate(e.date).toLowerCase();
-              return (
+          const filtered = (p.events || [])
+            .filter(
+              (e) =>
                 e.text.toLowerCase().includes(searchVal) ||
-                displayDate.includes(searchVal)
-              );
-            })
+                formatDisplayDate(e.date).toLowerCase().includes(searchVal),
+            )
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
           filtered.forEach((e) => {
             const row = document.createElement("div");
             row.className = "task-item";
             row.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1; cursor: pointer;" onclick="editLearning('${e.id}')">
-                    <i class="fas fa-lightbulb" style="color: #e6b800; margin-top: 5px;"></i>
-                    <div style="flex: 1;">
-                        <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); text-transform: uppercase;">
-                            ${formatDisplayDate(e.date)}
-                        </div>
-                        <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark); line-height: 1.4;">
-                            ${e.text}
-                        </div>
-                    </div>
-                </div>
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteLearning('${e.id}')">
-                    <i class="fas fa-trash-alt"></i>
-                </button>`;
+          <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1; cursor: pointer;" onclick="editLearning('${e.id}')">
+              <i class="fas fa-lightbulb" style="color: #e6b800; margin-top: 5px;"></i>
+              <div style="flex: 1;">
+                  <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); text-transform: uppercase;">
+                      ${formatDisplayDate(e.date)}
+                  </div>
+                  <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark); line-height: 1.4;">
+                      ${linkify(e.text)}
+                  </div>
+              </div>
+          </div>
+          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteLearning('${e.id}')">
+              <i class="fas fa-trash-alt"></i>
+          </button>`;
             learningsList.appendChild(row);
           });
-
-          if (filtered.length === 0 && searchVal !== "") {
-            learningsList.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:13px; margin-top:20px;">No learnings found for "${searchVal}"</p>`;
-          }
         }
 
-        // 7. Render Issues Tab
+        // 7. Render Issues Tab (Unique ID & Search)
         const issuesList = document.getElementById("issues-list");
         if (issuesList) {
           const searchVal = document
@@ -1817,17 +1973,17 @@
             .value.toLowerCase();
           issuesList.innerHTML = "";
 
-          const issuesData = p.issues || [];
-
-          const filteredIssues = issuesData
-            .filter((i) => i.text.toLowerCase().includes(searchVal))
+          const filteredIssues = (p.issues || [])
+            .filter((i) => {
+              const idMatch = i.issueIdDisplay
+                ? i.issueIdDisplay.toLowerCase().includes(searchVal)
+                : false;
+              const textMatch = i.text.toLowerCase().includes(searchVal);
+              return idMatch || textMatch;
+            })
             .sort((a, b) => {
-              // First Sort: Status (Open before Resolved)
               if (a.status === "open" && b.status === "resolved") return -1;
               if (a.status === "resolved" && b.status === "open") return 1;
-
-              // Second Sort: Date (Newest Created first)
-              // Assuming newer IDs or createdAt dates are higher numbers
               return new Date(b.createdAt) - new Date(a.createdAt);
             });
 
@@ -1835,7 +1991,6 @@
             const isResolved = i.status === "resolved";
             const row = document.createElement("div");
             row.className = "task-item";
-            // Visual indicator: Red for Open, Green for Resolved
             row.style.borderLeft = isResolved
               ? "4px solid var(--success-green)"
               : "4px solid #a66363";
@@ -1845,44 +2000,44 @@
               ? "rgba(255,255,255,0.5)"
               : "transparent";
 
+            const displayIdTag = i.issueIdDisplay
+              ? `[${i.issueIdDisplay}]`
+              : "";
+
             row.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                    <button onclick="toggleIssueStatus('${i.id}')" 
-                            style="border:none; background:none; cursor:pointer; color:${isResolved ? "var(--success-green)" : "#a66363"}"
-                            title="${isResolved ? "Re-open" : "Resolve"}">
-                        <i class="fas ${isResolved ? "fa-check-circle" : "fa-exclamation-circle"} fa-lg"></i>
-                    </button>
-                    <div style="flex: 1; cursor: pointer; ${isResolved ? "opacity: 0.5; text-decoration: line-through;" : ""}" onclick="editIssue('${i.id}')">
-                        <div style="font-size: 15px; font-weight: 700; color: var(--primary-dark);">${i.text}</div>
-                        <div style="font-size: 10px; color: var(--muted-tan); text-transform: uppercase; font-weight:bold;">
-                            ${formatDate(i.createdAt)} ${isResolved ? "• RESOLVED" : "• OPEN"}
-                        </div>
-                    </div>
-                </div>
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteIssue('${i.id}')">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            `;
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+              <button onclick="toggleIssueStatus('${i.id}')" 
+                      style="border:none; background:none; cursor:pointer; color:${isResolved ? "var(--success-green)" : "#a66363"}"
+                      title="${isResolved ? "Re-open" : "Resolve"}">
+                  <i class="fas ${isResolved ? "fa-check-circle" : "fa-exclamation-circle"} fa-lg"></i>
+              </button>
+              <div style="flex: 1; cursor: pointer; ${isResolved ? "opacity: 0.5; text-decoration: line-through;" : ""}" onclick="editIssue('${i.id}')">
+                  <div style="font-size: 15px; font-weight: 700; color: var(--primary-dark);">
+                      <span style="font-family: 'Special Elite', monospace; color: var(--accent-brown); margin-right: 8px; font-size: 14px;">${displayIdTag}</span>
+                      ${i.text}
+                  </div>
+                  <div style="font-size: 10px; color: var(--muted-tan); text-transform: uppercase; font-weight:bold;">
+                      ${formatDate(i.createdAt)} ${isResolved ? "• RESOLVED" : "• OPEN"}
+                  </div>
+              </div>
+          </div>
+          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteIssue('${i.id}')">
+              <i class="fas fa-trash-alt"></i>
+          </button>`;
             issuesList.appendChild(row);
           });
-
-          if (filteredIssues.length === 0 && searchVal !== "") {
-            issuesList.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:13px; margin-top:20px;">No issues found.</p>`;
-          }
         }
 
-        // 8. Render Planner Tab
+        // 8. Render Meetings Tab (formerly Planner)
         const plannerList = document.getElementById("planner-list");
         if (plannerList) {
           const searchVal = document
             .getElementById("planner-search")
             .value.toLowerCase();
           plannerList.innerHTML = "";
-
-          const meetingData = p.meetings || [];
           const todayStr = new Date().toISOString().split("T")[0];
 
-          const filtered = meetingData
+          const filtered = (p.meetings || [])
             .filter((m) => m.text.toLowerCase().includes(searchVal))
             .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
@@ -1890,49 +2045,63 @@
             const isToday = m.date === todayStr;
             const row = document.createElement("div");
             row.className = "task-item";
-            row.style.display = "flex";
-            row.style.alignItems = "center";
-            row.style.padding = "15px 10px";
-            if (isToday) row.style.background = "rgba(111, 78, 55, 0.05)";
 
-            // Format time to be a bit cleaner (removes leading zero if needed)
-            const displayTime = m.time;
+            // Add vertical spacing between meeting entries
+            row.style.marginBottom = "12px";
+            row.style.paddingBottom = "12px";
+            row.style.borderBottom = "1px solid #f5f1ed";
 
-            // Update the button group in Section 8 of renderActions
+            if (isToday) {
+              row.style.borderLeft = "4px solid var(--accent-brown)";
+              row.style.background = "rgba(111, 78, 55, 0.03)";
+              row.style.paddingLeft = "10px";
+            }
+
+            // Map members to clickable spans for removal
+            const meetingMemberHtml = (m.members || [])
+              .map(
+                (name) =>
+                  `<span onclick="event.stopPropagation(); removeMember('meeting', '${m.id}', '${name}')" style="cursor:pointer; text-decoration:underline;" title="Click to remove">${name}</span>`,
+              )
+              .join(", ");
+
             row.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 20px; flex: 1; cursor: pointer;" onclick="editMeeting('${m.id}')">
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 55px; height: 55px; border-radius: 10px; background: ${isToday ? "var(--accent-brown)" : "#f0ece9"}; color: ${isToday ? "white" : "var(--primary-dark)"}; border: 1px solid rgba(0,0,0,0.05);">
-                <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: -2px; opacity: 0.8;">
-                    ${new Date(m.date).toLocaleString("default", { month: "short" })}
+            <div style="display: flex; align-items: center; gap: 15px; flex: 1; cursor: pointer;" onclick="editMeeting('${m.id}')">
+                <div style="min-width: 50px; text-align: center; font-family: 'Special Elite', cursive; color: var(--accent-brown);">
+                    <div style="font-size: 10px; opacity: 0.7;">${new Date(m.date).toLocaleString("default", { month: "short" })}</div>
+                    <div style="font-size: 18px; font-weight: bold; line-height: 1;">${m.date.split("-")[2]}</div>
                 </div>
-                <div style="font-size: 20px; font-weight: 800; line-height: 1;">
-                    ${m.date.split("-")[2]}
+
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); display: flex; align-items: center; gap: 5px;">
+                        <i class="far fa-clock"></i> ${m.time}
+                    </div>
+                    <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark);">
+                        ${linkify(m.text)}
+                    </div>
+                    <small style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
+                        ${m.members && m.members.length > 0 ? "👥 " + meetingMemberHtml : ""}
+                    </small>
                 </div>
             </div>
 
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <div style="font-size: 12px; font-weight: 800; color: ${isToday ? "var(--accent-brown)" : "var(--muted-tan)"}; display: flex; align-items: center; gap: 5px;">
-                    <i class="far fa-clock"></i> ${m.time}
-                </div>
-                <div style="font-size: 17px; font-weight: 700; color: var(--primary-dark); margin-top: 2px;">
-                    ${m.text}
-                </div>
+            <div style="display: flex; gap: 10px; margin-left: 10px;">
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; font-size: 14px;" 
+                        onclick="rescheduleMeeting('${m.id}')" title="Reschedule">
+                    <i class="fas fa-calendar-alt"></i>
+                </button>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; font-size: 14px;" 
+                        onclick="deleteMeeting('${m.id}')" title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
-        </div>
-        
-        <div style="display: flex; gap: 5px;">
-            <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px; font-size: 14px;" 
-                    onclick="rescheduleMeeting('${m.id}')" title="Reschedule">
-                <i class="fas fa-calendar-alt"></i>
-            </button>
-            <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px; font-size: 14px;" 
-                    onclick="deleteMeeting('${m.id}')" title="Delete">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        </div>
-    `;
+        `;
             plannerList.appendChild(row);
           });
+
+          if (filtered.length === 0 && searchVal !== "") {
+            plannerList.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:13px; margin-top:20px;">No meetings found matching "${searchVal}"</p>`;
+          }
         }
       }
 
@@ -2079,7 +2248,8 @@
           }
 
           // --- Tab Navigation (Left/Right) ---
-          const tabOrder = ["tasks", "notes", "learnings", "issues", "planner"];
+          const tabOrder = ["issues", "tasks", "learnings", "notes", "planner"];
+
           if (activeId && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
             e.preventDefault();
             const currentTabBtn = document.querySelector(".tab.active");
@@ -2099,6 +2269,7 @@
           }
 
           // --- Project Navigation (Up/Down) ---
+          // --- Project Navigation (Up/Down) ---
           if (e.key === "ArrowDown" || e.key === "ArrowUp") {
             e.preventDefault();
 
@@ -2114,6 +2285,10 @@
             if (newActiveId) {
               activeId = newActiveId;
               render();
+
+              // ADD THIS LINE BELOW
+              switchTab("issues");
+
               const activeEl = document.querySelector(".project-item.active");
               if (activeEl) {
                 activeEl.scrollIntoView({
