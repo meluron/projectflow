@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -529,7 +529,8 @@
         background-color: #eee;
         border-radius: 3px;
         border: 1px solid #b4b4b4;
-        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2),
+        box-shadow:
+          0 1px 1px rgba(0, 0, 0, 0.2),
           0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
         color: #333;
         display: inline-block;
@@ -617,7 +618,7 @@
       <div class="modal-content" style="width: 850px; max-width: 90vw">
         <h2
           style="
-            font-family: 'Special Elite';
+            font-family: &quot;Special Elite&quot;;
             margin-top: 0;
             color: var(--accent-brown);
             text-align: center;
@@ -936,6 +937,19 @@
             <div class="tab" onclick="switchTab('notes')" id="tab-notes">
               Notes
             </div>
+            <div
+              class="tab"
+              onclick="switchTab('learnings')"
+              id="tab-learnings"
+            >
+              Learnings
+            </div>
+            <div class="tab" onclick="switchTab('issues')" id="tab-issues">
+              Issues
+            </div>
+            <div class="tab" onclick="switchTab('planner')" id="tab-planner">
+              Planner
+            </div>
           </div>
 
           <div id="tasks-content">
@@ -965,7 +979,10 @@
             <div class="notes-toolbar" style="gap: 10px">
               <button
                 class="btn-toggle-icon"
-                onclick="const p = projects.find(x => x.id === activeId); copyToClipboard(p.notes || '', this)"
+                onclick="
+                  const p = projects.find((x) => x.id === activeId);
+                  copyToClipboard(p.notes || '', this);
+                "
                 title="Copy Notes"
               >
                 <i class="fas fa-copy"></i>
@@ -988,6 +1005,132 @@
             ></textarea>
             <div id="markdown-view" class="markdown-body"></div>
           </div>
+          <div id="learnings-content" class="hidden">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px">
+              <input
+                type="text"
+                id="learning-search"
+                class="standard-input"
+                placeholder="🔍 Search knowledge base..."
+                oninput="renderActions()"
+              />
+            </div>
+
+            <div
+              style="
+                background: rgba(122, 154, 101, 0.15);
+                padding: 15px;
+                border-radius: var(--radius);
+                margin-bottom: 25px;
+                border: 1px dashed var(--success-green);
+              "
+            >
+              <div style="display: flex; gap: 10px; align-items: center">
+                <input
+                  type="text"
+                  id="learning-desc-input"
+                  class="standard-input"
+                  style="flex: 1"
+                  placeholder="What important insight did you gain?"
+                  onkeydown="if (event.key === 'Enter') addLearning();"
+                />
+                <button
+                  class="btn-action"
+                  style="background: var(--success-green)"
+                  onclick="addLearning()"
+                >
+                  Log Insight
+                </button>
+              </div>
+            </div>
+
+            <div id="learnings-list"></div>
+          </div>
+          <div id="issues-content" class="hidden">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px">
+              <input
+                type="text"
+                id="issue-search"
+                class="standard-input"
+                placeholder="🔍 Search issues..."
+                oninput="renderActions()"
+              />
+            </div>
+
+            <div
+              style="
+                background: rgba(166, 99, 99, 0.1);
+                padding: 15px;
+                border-radius: var(--radius);
+                margin-bottom: 20px;
+                border: 1px solid rgba(166, 99, 99, 0.2);
+              "
+            >
+              <div style="display: flex; gap: 10px">
+                <input
+                  type="text"
+                  id="issue-input"
+                  class="standard-input"
+                  placeholder="What is the blocker or bug?"
+                  onkeydown="if (event.key === 'Enter') addIssue();"
+                />
+                <button
+                  class="btn-action"
+                  style="background: #a66363"
+                  onclick="addIssue()"
+                >
+                  Report
+                </button>
+              </div>
+            </div>
+
+            <div id="issues-list"></div>
+          </div>
+          <div id="planner-content" class="hidden">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px">
+              <input
+                type="text"
+                id="planner-search"
+                class="standard-input"
+                placeholder="🔍 Search meetings..."
+                oninput="renderActions()"
+              />
+            </div>
+
+            <div
+              style="
+                background: rgba(111, 78, 55, 0.05);
+                padding: 20px;
+                border-radius: var(--radius);
+                margin-bottom: 25px;
+                border: 1.5px solid var(--border-color);
+              "
+            >
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1.5fr 1fr 2fr auto;
+                  gap: 10px;
+                  align-items: center;
+                "
+              >
+                <input type="date" id="plan-date" class="standard-input" />
+                <input type="time" id="plan-time" class="standard-input" />
+                <input
+                  type="text"
+                  id="plan-desc"
+                  class="standard-input"
+                  placeholder="Meeting / Event Title..."
+                  onkeydown="if (event.key === 'Enter') addMeeting();"
+                />
+                <button class="btn-action" onclick="addMeeting()">
+                  <i class="fas fa-calendar-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="planner-list"></div>
+          </div>
         </div>
       </main>
     </div>
@@ -997,7 +1140,11 @@
         <h3
           class="modal-title"
           id="modal-title"
-          style="font-family: 'Special Elite'; font-size: 22px; margin-top: 0"
+          style="
+            font-family: &quot;Special Elite&quot;;
+            font-size: 22px;
+            margin-top: 0;
+          "
         >
           Edit
         </h3>
@@ -1016,6 +1163,47 @@
             Cancel
           </button>
           <button class="btn-action" id="modal-confirm-btn">Confirm</button>
+        </div>
+      </div>
+    </div>
+    <div id="reschedule-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h3
+          style="
+            font-family: &quot;Special Elite&quot;;
+            font-size: 22px;
+            margin-top: 0;
+          "
+        >
+          Reschedule Meeting
+        </h3>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px">
+          <div style="flex: 1">
+            <label
+              style="font-size: 11px; font-weight: 800; color: var(--muted-tan)"
+              >NEW DATE</label
+            >
+            <input type="date" id="resched-date" class="standard-input" />
+          </div>
+          <div style="flex: 1">
+            <label
+              style="font-size: 11px; font-weight: 800; color: var(--muted-tan)"
+              >NEW TIME</label
+            >
+            <input type="time" id="resched-time" class="standard-input" />
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px">
+          <button
+            class="btn-action"
+            style="background: var(--muted-tan)"
+            onclick="closeRescheduleModal()"
+          >
+            Cancel
+          </button>
+          <button class="btn-action" id="resched-confirm-btn">
+            Update Schedule
+          </button>
         </div>
       </div>
     </div>
@@ -1168,7 +1356,7 @@
           s = pomoSecs % 60;
         const timeStr = `${String(m).padStart(2, "0")}:${String(s).padStart(
           2,
-          "0"
+          "0",
         )}`;
         const timerDisplay = document.getElementById("timer-display");
         if (timerDisplay) timerDisplay.innerText = timeStr;
@@ -1193,7 +1381,7 @@
           const dayLabel = days[d.getDay()];
           const dateKey = d.setHours(0, 0, 0, 0);
           const count = pomoHistory.filter(
-            (t) => new Date(t).setHours(0, 0, 0, 0) === dateKey
+            (t) => new Date(t).setHours(0, 0, 0, 0) === dateKey,
           ).length;
           const barHeight = count === 0 ? 4 : Math.min((count / 12) * 40, 40);
           const dayEl = document.createElement("div");
@@ -1201,8 +1389,8 @@
           dayEl.innerHTML = `
             <span class="dash-count">${count}</span>
             <div class="dash-bar"><div class="dash-bar-fill" style="height:${barHeight}px; opacity: ${
-            count === 0 ? "0.3" : "1"
-          }"></div></div>
+              count === 0 ? "0.3" : "1"
+            }"></div></div>
             <span class="dash-label">${dayLabel}</span>
         `;
           grid.appendChild(dayEl);
@@ -1231,7 +1419,7 @@
           const memberHtml = (p.members || [])
             .map(
               (m) =>
-                `<span onclick="event.stopPropagation(); removeMember('project', '${p.id}', '${m}')" title="Click to remove">${m}</span>`
+                `<span onclick="event.stopPropagation(); removeMember('project', '${p.id}', '${m}')" title="Click to remove">${m}</span>`,
             )
             .join(", ");
 
@@ -1253,8 +1441,8 @@
             </div>
             <div class="p-meta">
                 ${formatDate(p.createdAt)} • ${
-            p.actions.filter((a) => a.done).length
-          }/${p.actions.length} tasks
+                  p.actions.filter((a) => a.done).length
+                }/${p.actions.length} tasks
             </div>
             <div class="p-member-list">
                 ${p.members && p.members.length > 0 ? "👥 " + memberHtml : ""}
@@ -1274,12 +1462,184 @@
         updateTimerDisplay();
       }
 
+      function addIssue() {
+        const p = projects.find((x) => x.id === activeId);
+        const input = document.getElementById("issue-input");
+        if (!input.value.trim()) return;
+
+        if (!p.issues) p.issues = [];
+
+        p.issues.push({
+          id: Date.now().toString(),
+          text: input.value.trim(),
+          status: "open", // 'open' or 'resolved'
+          createdAt: new Date().toISOString(),
+        });
+
+        input.value = "";
+        save();
+      }
+
+      function toggleIssueStatus(issueId) {
+        const p = projects.find((x) => x.id === activeId);
+        const issue = p.issues.find((i) => i.id === issueId);
+        issue.status = issue.status === "open" ? "resolved" : "open";
+        save();
+      }
+
+      function deleteIssue(issueId) {
+        const p = projects.find((x) => x.id === activeId);
+        p.issues = p.issues.filter((i) => i.id !== issueId);
+        save();
+      }
+
+      function editIssue(issueId) {
+        const p = projects.find((x) => x.id === activeId);
+        const issue = p.issues.find((i) => i.id === issueId);
+        openBrewModal("Edit Issue", issue.text, (val) => {
+          if (val) {
+            issue.text = val;
+            save();
+          }
+        });
+      }
+
+      // Function to format YYYY-MM-DD to DD-MM-YYYY for display
+      function formatDisplayDate(dateStr) {
+        if (!dateStr) return "";
+        const [year, month, day] = dateStr.split("-");
+        return `${day}-${month}-${year}`;
+      }
+
+      function addMeeting() {
+        const p = projects.find((x) => x.id === activeId);
+        const dateIn = document.getElementById("plan-date");
+        const timeIn = document.getElementById("plan-time");
+        const descIn = document.getElementById("plan-desc");
+
+        if (!dateIn.value || !descIn.value.trim()) return;
+
+        if (!p.meetings) p.meetings = [];
+
+        p.meetings.push({
+          id: Date.now().toString(),
+          date: dateIn.value,
+          time: timeIn.value || "00:00",
+          text: descIn.value.trim(),
+          createdAt: new Date().toISOString(),
+        });
+
+        descIn.value = "";
+        save();
+      }
+
+      function editMeeting(id) {
+        const p = projects.find((x) => x.id === activeId);
+        const meeting = p.meetings.find((m) => m.id === id);
+
+        openBrewModal("Edit Meeting Title", meeting.text, (newVal) => {
+          if (newVal) {
+            meeting.text = newVal;
+            save();
+          }
+        });
+      }
+
+      function rescheduleMeeting(id) {
+        const p = projects.find((x) => x.id === activeId);
+        const meeting = p.meetings.find((m) => m.id === id);
+
+        // Show modal and pre-fill current values
+        const modal = document.getElementById("reschedule-modal");
+        const dateInput = document.getElementById("resched-date");
+        const timeInput = document.getElementById("resched-time");
+
+        dateInput.value = meeting.date;
+        timeInput.value = meeting.time;
+
+        modal.classList.remove("hidden");
+        isModalOpen = true;
+
+        // Set up the confirm button for this specific meeting
+        document.getElementById("resched-confirm-btn").onclick = () => {
+          if (dateInput.value) {
+            meeting.date = dateInput.value;
+            meeting.time = timeInput.value || "00:00";
+            save();
+            closeRescheduleModal();
+          }
+        };
+      }
+
+      function closeRescheduleModal() {
+        document.getElementById("reschedule-modal").classList.add("hidden");
+        isModalOpen = false;
+      }
+
+      function deleteMeeting(id) {
+        const p = projects.find((x) => x.id === activeId);
+        p.meetings = p.meetings.filter((m) => m.id !== id);
+        save();
+      }
+
+      function addLearning() {
+        const p = projects.find((x) => x.id === activeId);
+        const descInput = document.getElementById("learning-desc-input");
+
+        if (!descInput.value.trim()) return;
+
+        if (!p.events) p.events = [];
+
+        // Get today's date in YYYY-MM-DD format automatically
+        const today = new Date().toISOString().split("T")[0];
+
+        p.events.push({
+          id: Date.now().toString(),
+          date: today, // Automatically assigned
+          text: descInput.value.trim(),
+          createdAt: new Date().toISOString(),
+        });
+
+        descInput.value = "";
+        save();
+      }
+
+      function editLearning(id) {
+        const p = projects.find((x) => x.id === activeId);
+        const item = p.events.find((e) => e.id === id);
+        openBrewModal("Edit Insight", item.text, (val) => {
+          if (val) {
+            item.text = val;
+            save();
+          }
+        });
+      }
+
+      function deleteLearning(id) {
+        const p = projects.find((x) => x.id === activeId);
+        if (!p || !p.events) return;
+
+        // Using openBrewModal as a confirmation dialog (isPrompt = false)
+        openBrewModal(
+          "Delete this learning?",
+          "",
+          (confirmed) => {
+            if (confirmed) {
+              p.events = p.events.filter((e) => e.id !== id);
+              save();
+            }
+          },
+          false,
+        );
+      }
+
       function renderActions() {
         const p = projects.find((x) => x.id === activeId);
         if (!p) return;
 
         // 1. Update Header Title
-        document.getElementById("panel-title").innerText = p.name;
+        const panelTitle = document.getElementById("panel-title");
+        if (panelTitle) panelTitle.innerText = p.name;
 
         // 2. Handle Project Description (Goal) & Copy Button
         let descContainer = document.getElementById("desc-container");
@@ -1302,111 +1662,269 @@
             "width: 28px; height: 28px; font-size: 11px; flex-shrink: 0; background: rgba(192, 160, 128, 0.2); color: var(--accent-brown);";
           copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
           copyBtn.title = "Copy Description";
-        
+
           descContainer.appendChild(copyBtn);
           descContainer.appendChild(descText);
-          
-          document.getElementById("panel-title").after(descContainer);
+          if (panelTitle) panelTitle.after(descContainer);
         }
 
-        // Update description content and its copy button event
-        document.getElementById("project-description").innerText =
-          p.description || "Click to add a project goal or description...";
-        document.getElementById("copy-desc-btn").onclick = () =>
-          copyToClipboard(
-            p.description || "",
-            document.getElementById("copy-desc-btn")
-          );
+        const projDesc = document.getElementById("project-description");
+        if (projDesc)
+          projDesc.innerText =
+            p.description || "Click to add a project goal or description...";
 
-        // 3. Restore/Update Project Stats (Date and Time)
-        const totalTime = p.actions.reduce((s, a) => s + (a.timeSpent || 0), 0);
-        document.getElementById("project-stats").innerHTML = `
-    Created: ${formatDate(p.createdAt)} • Total Session: ${formatTime(
-          totalTime
-        )}
-  `;
+        const copyDescBtn = document.getElementById("copy-desc-btn");
+        if (copyDescBtn) {
+          copyDescBtn.onclick = () =>
+            copyToClipboard(p.description || "", copyDescBtn);
+        }
 
-        // 4. Update Notes Area
-        document.getElementById("notes-area").value = p.notes || "";
-        const markdownView = document.getElementById("markdown-view");
+        // 3. Project Stats
+        const statsEl = document.getElementById("project-stats");
+        if (statsEl) {
+          const totalTime = p.actions
+            ? p.actions.reduce((s, a) => s + (a.timeSpent || 0), 0)
+            : 0;
+          statsEl.innerHTML = `Created: ${formatDate(p.createdAt)} • Total Session: ${formatTime(totalTime)}`;
+        }
+
+        // 4. Render Tasks (Actions Tab)
+        const activeList = document.getElementById("active-actions");
+        const archList = document.getElementById("archived-actions");
+        if (activeList && archList) {
+          activeList.innerHTML = "";
+          archList.innerHTML = "";
+
+          (p.actions || []).forEach((a) => {
+            const row = document.createElement("div");
+            row.className = "task-item";
+            row.draggable = true;
+            row.ondragstart = (e) => {
+              dragSource = { type: "task", id: a.id };
+            };
+            row.ondragover = (e) => e.preventDefault();
+            row.ondrop = (e) => handleDrop(e, a.id, "task");
+
+            const taskMemberHtml = (a.members || [])
+              .map(
+                (m) =>
+                  `<span onclick="removeMember('task', '${a.id}', '${m}')" style="cursor:pointer; text-decoration:underline;" title="Click to remove">${m}</span>`,
+              )
+              .join(", ");
+
+            row.innerHTML = `
+                <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
+                <input type="checkbox" ${a.done ? "checked" : ""} onchange="toggleAction('${a.id}')">
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <span class="task-text ${a.done ? "done" : ""}" onclick="editActionText('${a.id}')">
+                        ${a.text} 
+                        <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(a.createdAt)}</small>
+                    </span>
+                    <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
+                        ${a.members && a.members.length > 0 ? "Assigned: " + taskMemberHtml : ""}
+                    </small>
+                </div>
+                <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${a.id}')">
+                    ${formatTime(a.timeSpent)}
+                </span>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${a.id}')">
+                    <i class="fas fa-user-plus"></i>
+                </button>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${a.id}')">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            (a.done ? archList : activeList).appendChild(row);
+          });
+        }
+
+        // 5. Render Notes Tab
         const notesArea = document.getElementById("notes-area");
+        const markdownView = document.getElementById("markdown-view");
         const toggleIcon = document.getElementById("toggle-icon");
 
-        if (isMarkdownMode) {
-          markdownView.innerHTML = marked.parse(p.notes || DEFAULT_MD);
-          markdownView.classList.remove("hidden");
-          notesArea.classList.add("hidden");
-          toggleIcon.className = "fas fa-pen";
-        } else {
-          markdownView.classList.add("hidden");
-          notesArea.classList.remove("hidden");
-          toggleIcon.className = "fas fa-eye";
-          notesArea.focus();
+        if (notesArea && markdownView) {
+          notesArea.value = p.notes || "";
+          if (isMarkdownMode) {
+            markdownView.innerHTML = marked.parse(p.notes || DEFAULT_MD);
+            markdownView.classList.remove("hidden");
+            notesArea.classList.add("hidden");
+            if (toggleIcon) toggleIcon.className = "fas fa-pen";
+          } else {
+            markdownView.classList.add("hidden");
+            notesArea.classList.remove("hidden");
+            if (toggleIcon) toggleIcon.className = "fas fa-eye";
+          }
         }
 
-        // 5. Render Tasks (Actions)
-        const activeList = document.getElementById("active-actions"),
-          archList = document.getElementById("archived-actions");
-        activeList.innerHTML = "";
-        archList.innerHTML = "";
+        // 6. Render Learnings Tab
+        const learningsList = document.getElementById("learnings-list");
+        if (learningsList) {
+          const searchInput = document.getElementById("learning-search");
+          const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
+          learningsList.innerHTML = "";
 
-        p.actions.forEach((a) => {
-          const row = document.createElement("div");
-          row.className = "task-item";
-          row.draggable = true;
-          row.ondragstart = (e) => {
-            dragSource = { type: "task", id: a.id };
-          };
-          row.ondragover = (e) => e.preventDefault();
-          row.ondrop = (e) => handleDrop(e, a.id, "task");
+          const learningData = p.events || [];
+          const filtered = learningData
+            .filter((e) => {
+              const displayDate = formatDisplayDate(e.date).toLowerCase();
+              return (
+                e.text.toLowerCase().includes(searchVal) ||
+                displayDate.includes(searchVal)
+              );
+            })
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-          const taskMemberHtml = (a.members || [])
-            .map(
-              (m) =>
-                `<span onclick="removeMember('task', '${a.id}', '${m}')" style="cursor:pointer; text-decoration:underline;" title="Click to remove">${m}</span>`
-            )
-            .join(", ");
+          filtered.forEach((e) => {
+            const row = document.createElement("div");
+            row.className = "task-item";
+            row.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1; cursor: pointer;" onclick="editLearning('${e.id}')">
+                    <i class="fas fa-lightbulb" style="color: #e6b800; margin-top: 5px;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); text-transform: uppercase;">
+                            ${formatDisplayDate(e.date)}
+                        </div>
+                        <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark); line-height: 1.4;">
+                            ${e.text}
+                        </div>
+                    </div>
+                </div>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteLearning('${e.id}')">
+                    <i class="fas fa-trash-alt"></i>
+                </button>`;
+            learningsList.appendChild(row);
+          });
 
-          row.innerHTML = `
-      <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
-      <input type="checkbox" ${
-        a.done ? "checked" : ""
-      } onchange="toggleAction('${a.id}')">
-      <div style="flex: 1; display: flex; flex-direction: column;">
-          <span class="task-text ${
-            a.done ? "done" : ""
-          }" onclick="editActionText('${a.id}')">
-              ${a.text} 
-              <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(
-                a.createdAt
-              )}</small>
-          </span>
-          <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
-              ${
-                a.members && a.members.length > 0
-                  ? "Assigned: " + taskMemberHtml
-                  : ""
-              }
-          </small>
-      </div>
-      <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${
-        a.id
-      }')">
-          ${formatTime(a.timeSpent)}
-      </span>
-      <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${
-        a.id
-      }')" title="Assign Person">
-          <i class="fas fa-user-plus"></i>
-      </button>
-      <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${
-        a.id
-      }')">
-          <i class="fas fa-times"></i>
-      </button>`;
+          if (filtered.length === 0 && searchVal !== "") {
+            learningsList.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:13px; margin-top:20px;">No learnings found for "${searchVal}"</p>`;
+          }
+        }
 
-          (a.done ? archList : activeList).appendChild(row);
-        });
+        // 7. Render Issues Tab
+        const issuesList = document.getElementById("issues-list");
+        if (issuesList) {
+          const searchVal = document
+            .getElementById("issue-search")
+            .value.toLowerCase();
+          issuesList.innerHTML = "";
+
+          const issuesData = p.issues || [];
+
+          const filteredIssues = issuesData
+            .filter((i) => i.text.toLowerCase().includes(searchVal))
+            .sort((a, b) => {
+              // First Sort: Status (Open before Resolved)
+              if (a.status === "open" && b.status === "resolved") return -1;
+              if (a.status === "resolved" && b.status === "open") return 1;
+
+              // Second Sort: Date (Newest Created first)
+              // Assuming newer IDs or createdAt dates are higher numbers
+              return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+
+          filteredIssues.forEach((i) => {
+            const isResolved = i.status === "resolved";
+            const row = document.createElement("div");
+            row.className = "task-item";
+            // Visual indicator: Red for Open, Green for Resolved
+            row.style.borderLeft = isResolved
+              ? "4px solid var(--success-green)"
+              : "4px solid #a66363";
+            row.style.paddingLeft = "12px";
+            row.style.marginBottom = "8px";
+            row.style.background = isResolved
+              ? "rgba(255,255,255,0.5)"
+              : "transparent";
+
+            row.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                    <button onclick="toggleIssueStatus('${i.id}')" 
+                            style="border:none; background:none; cursor:pointer; color:${isResolved ? "var(--success-green)" : "#a66363"}"
+                            title="${isResolved ? "Re-open" : "Resolve"}">
+                        <i class="fas ${isResolved ? "fa-check-circle" : "fa-exclamation-circle"} fa-lg"></i>
+                    </button>
+                    <div style="flex: 1; cursor: pointer; ${isResolved ? "opacity: 0.5; text-decoration: line-through;" : ""}" onclick="editIssue('${i.id}')">
+                        <div style="font-size: 15px; font-weight: 700; color: var(--primary-dark);">${i.text}</div>
+                        <div style="font-size: 10px; color: var(--muted-tan); text-transform: uppercase; font-weight:bold;">
+                            ${formatDate(i.createdAt)} ${isResolved ? "• RESOLVED" : "• OPEN"}
+                        </div>
+                    </div>
+                </div>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteIssue('${i.id}')">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+            issuesList.appendChild(row);
+          });
+
+          if (filteredIssues.length === 0 && searchVal !== "") {
+            issuesList.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:13px; margin-top:20px;">No issues found.</p>`;
+          }
+        }
+
+        // 8. Render Planner Tab
+        const plannerList = document.getElementById("planner-list");
+        if (plannerList) {
+          const searchVal = document
+            .getElementById("planner-search")
+            .value.toLowerCase();
+          plannerList.innerHTML = "";
+
+          const meetingData = p.meetings || [];
+          const todayStr = new Date().toISOString().split("T")[0];
+
+          const filtered = meetingData
+            .filter((m) => m.text.toLowerCase().includes(searchVal))
+            .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+          filtered.forEach((m) => {
+            const isToday = m.date === todayStr;
+            const row = document.createElement("div");
+            row.className = "task-item";
+            row.style.display = "flex";
+            row.style.alignItems = "center";
+            row.style.padding = "15px 10px";
+            if (isToday) row.style.background = "rgba(111, 78, 55, 0.05)";
+
+            // Format time to be a bit cleaner (removes leading zero if needed)
+            const displayTime = m.time;
+
+            // Update the button group in Section 8 of renderActions
+            row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 20px; flex: 1; cursor: pointer;" onclick="editMeeting('${m.id}')">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 55px; height: 55px; border-radius: 10px; background: ${isToday ? "var(--accent-brown)" : "#f0ece9"}; color: ${isToday ? "white" : "var(--primary-dark)"}; border: 1px solid rgba(0,0,0,0.05);">
+                <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: -2px; opacity: 0.8;">
+                    ${new Date(m.date).toLocaleString("default", { month: "short" })}
+                </div>
+                <div style="font-size: 20px; font-weight: 800; line-height: 1;">
+                    ${m.date.split("-")[2]}
+                </div>
+            </div>
+
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-size: 12px; font-weight: 800; color: ${isToday ? "var(--accent-brown)" : "var(--muted-tan)"}; display: flex; align-items: center; gap: 5px;">
+                    <i class="far fa-clock"></i> ${m.time}
+                </div>
+                <div style="font-size: 17px; font-weight: 700; color: var(--primary-dark); margin-top: 2px;">
+                    ${m.text}
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 5px;">
+            <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px; font-size: 14px;" 
+                    onclick="rescheduleMeeting('${m.id}')" title="Reschedule">
+                <i class="fas fa-calendar-alt"></i>
+            </button>
+            <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px; font-size: 14px;" 
+                    onclick="deleteMeeting('${m.id}')" title="Delete">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    `;
+            plannerList.appendChild(row);
+          });
+        }
       }
 
       function toggleMarkdown() {
@@ -1474,7 +1992,7 @@
               save();
             }
           },
-          false
+          false,
         );
       }
       function toggleAction(id) {
@@ -1582,7 +2100,7 @@
               save();
             }
           },
-          false
+          false,
         ); // false means it's a confirmation, not a text input
       }
 
@@ -1649,19 +2167,17 @@
       }
 
       function switchTab(t) {
-        document
-          .getElementById("tab-tasks")
-          .classList.toggle("active", t === "tasks");
-        document
-          .getElementById("tab-notes")
-          .classList.toggle("active", t === "notes");
-        document
-          .getElementById("tasks-content")
-          .classList.toggle("hidden", t !== "tasks");
-        document
-          .getElementById("notes-content")
-          .classList.toggle("hidden", t !== "notes");
-        if (t === "notes") isMarkdownMode = true;
+        const tabs = ["tasks", "notes", "learnings", "issues", "planner"];
+        tabs.forEach((tab) => {
+          const tabBtn = document.getElementById(`tab-${tab}`);
+          const content = document.getElementById(`${tab}-content`);
+          if (tabBtn) tabBtn.classList.toggle("active", t === tab);
+          if (content) content.classList.toggle("hidden", t !== tab);
+        });
+
+        if (t === "planner") {
+          document.getElementById("plan-date").valueAsDate = new Date();
+        }
         renderActions();
       }
 
@@ -1699,7 +2215,7 @@
               p.description = val;
               save();
             }
-          }
+          },
         );
       }
 
