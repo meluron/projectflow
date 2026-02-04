@@ -2888,18 +2888,23 @@
       }
 
       function handleGlobalKeys(e) {
-        // 1. Handle Modal and Guide closing
+        // 1. If a modal is open, Escape should only close the modal
         if (e.key === "Escape" && isModalOpen) {
           closeModal();
           closeGuide();
           return;
         }
 
-        // 2. Handle Clear Focus / Deselect (only if not in an input)
+        // 2. Handle Escape for Unfocusing
         if (e.key === "Escape") {
-          activeId = null;
-          if (document.activeElement) document.activeElement.blur();
-          render();
+          // If we are currently typing in an input or textarea
+          if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+            document.activeElement.blur(); // Just remove focus from the text field
+          } else {
+            // If no input is focused, then we clear the active project selection
+            activeId = null;
+            render();
+          }
           return;
         }
 
@@ -2913,35 +2918,28 @@
           return;
         }
 
-        // 4. Contextual Navigation (Only when not typing in an input)
+        // 4. Contextual Navigation (Only active when NOT typing)
         if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
-          // --- Contextual Enter Key: Focus search/input of the active tab ---
+          // [Enter] to jump into the current tab's input
           if (e.key === "Enter" && activeId) {
             e.preventDefault();
             const currentTabBtn = document.querySelector(".tab.active");
             if (currentTabBtn) {
               const currentTabId = currentTabBtn.id.replace("tab-", "");
-
-              // Mapped to your new names
               const inputMap = {
-                quests: "issue-input", // Formerly issues
+                quests: "issue-input",
                 tasks: "action-input",
                 learnings: "learning-desc-input",
                 notes: "notes-area",
-                meetings: "plan-desc", // Formerly planner
+                meetings: "plan-desc",
               };
-
               const targetInputId = inputMap[currentTabId];
-              if (targetInputId) {
-                const targetEl = document.getElementById(targetInputId);
-                if (targetEl) targetEl.focus();
-              }
+              if (targetInputId) document.getElementById(targetInputId).focus();
             }
             return;
           }
 
-          // --- Tab Navigation (Left/Right Arrows) ---
-          // Updated order to match your new tab layout
+          // [Left/Right] arrows: Switch Tabs
           const tabOrder = [
             "quests",
             "tasks",
@@ -2949,17 +2947,15 @@
             "notes",
             "meetings",
           ];
-
           if (activeId && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
             e.preventDefault();
             const currentTabBtn = document.querySelector(".tab.active");
             if (currentTabBtn) {
               const currentTabId = currentTabBtn.id.replace("tab-", "");
               let currentIndex = tabOrder.indexOf(currentTabId);
-
               if (e.key === "ArrowRight") {
                 currentIndex = (currentIndex + 1) % tabOrder.length;
-              } else if (e.key === "ArrowLeft") {
+              } else {
                 currentIndex =
                   (currentIndex - 1 + tabOrder.length) % tabOrder.length;
               }
@@ -2967,7 +2963,7 @@
             }
           }
 
-          // --- Project Navigation (Up/Down Arrows) ---
+          // [Up/Down] arrows: Switch Projects
           if (e.key === "ArrowDown" || e.key === "ArrowUp") {
             e.preventDefault();
             const idx = projects.findIndex((p) => p.id === activeId);
@@ -2985,23 +2981,11 @@
             if (newActiveId) {
               activeId = newActiveId;
               render();
-
-              // Keep the current tab persistent when switching projects
               const currentTabBtn = document.querySelector(".tab.active");
               const currentTabId = currentTabBtn
                 ? currentTabBtn.id.replace("tab-", "")
-                : "quests"; // Default to Quests
+                : "quests";
               switchTab(currentTabId);
-
-              // Auto-scroll the sidebar to keep the active project visible
-              setTimeout(() => {
-                const activeEl = document.querySelector(".project-item.active");
-                if (activeEl)
-                  activeEl.scrollIntoView({
-                    behavior: "smooth",
-                    block: "nearest",
-                  });
-              }, 50);
             }
           }
         }
