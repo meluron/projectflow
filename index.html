@@ -783,6 +783,41 @@
         font-size: 10px;
         font-weight: 700;
       }
+
+      .input-group {
+        position: relative;
+        display: flex;
+        flex: 2.5; /* Matches your previous layout ratio */
+      }
+
+      .input-group .standard-input {
+        padding-right: 35px; /* Make room so text doesn't overlap the icon */
+        width: 100%;
+      }
+
+      .enter-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted-tan);
+        opacity: 0.5;
+        font-family: "Quicksand", sans-serif;
+        pointer-events: none; /* User clicks "through" it to the input */
+        font-size: 18px;
+      }
+
+      /* Ensure the Actions input follows the same theme as others */
+      #action-input {
+        background: #fdfbf7 !important; /* Dull tan/warm background */
+        transition: all 0.2s ease;
+      }
+
+      #action-input:focus {
+        background: white !important; /* Bright white on focus */
+        border-color: var(--muted-tan) !important;
+        box-shadow: 0 0 8px rgba(192, 160, 128, 0.2);
+      }
     </style>
   </head>
   <body onkeydown="handleGlobalKeys(event)">
@@ -1156,24 +1191,7 @@
 
           <div id="issues-content">
             <div style="display: flex; gap: 10px; margin-bottom: 20px">
-              <input
-                type="text"
-                id="issue-search"
-                class="standard-input"
-                placeholder="🔍 Search issues..."
-                oninput="renderActions()"
-              />
-            </div>
-            <div
-              style="
-                background: rgba(166, 99, 99, 0.1);
-                padding: 15px;
-                border-radius: var(--radius);
-                margin-bottom: 20px;
-                border: 1px solid rgba(166, 99, 99, 0.2);
-              "
-            >
-              <div style="display: flex; gap: 10px">
+              <div class="input-group">
                 <input
                   type="text"
                   id="issue-input"
@@ -1181,30 +1199,41 @@
                   placeholder="What is the issue?"
                   onkeydown="if (event.key === 'Enter') addIssue();"
                 />
-                <button
-                  class="btn-action"
-                  style="background: #a66363"
-                  onclick="addIssue()"
-                >
-                  Report
-                </button>
+                <span class="enter-icon">↵</span>
               </div>
+              <input
+                type="text"
+                id="issue-search"
+                class="standard-input"
+                style="flex: 1"
+                placeholder="🔍 Search..."
+                oninput="renderActions()"
+              />
             </div>
             <div id="issues-list"></div>
           </div>
 
           <div id="tasks-content" class="hidden">
-            <input
-              type="text"
-              id="action-input"
-              class="standard-input"
-              style="
-                margin-bottom: 25px;
-                background: white;
-                border: 1.5px solid #eee;
-              "
-              placeholder="+ Add Actionable Task..."
-            />
+            <div style="display: flex; gap: 10px; margin-bottom: 20px">
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="action-input"
+                  class="standard-input"
+                  style="background: white; border: 1.5px solid #eee"
+                  placeholder="+ Add Actionable Task..."
+                />
+                <span class="enter-icon">↵</span>
+              </div>
+              <input
+                type="text"
+                id="action-search"
+                class="standard-input"
+                style="flex: 1"
+                placeholder="🔍 Search..."
+                oninput="renderActions()"
+              />
+            </div>
             <div id="active-actions"></div>
             <div
               id="archived-actions"
@@ -1218,58 +1247,31 @@
 
           <div id="learnings-content" class="hidden">
             <div style="display: flex; gap: 10px; margin-bottom: 20px">
-              <input
-                type="text"
-                id="learning-search"
-                class="standard-input"
-                placeholder="🔍 Search learnings..."
-                oninput="renderActions()"
-              />
-            </div>
-            <div
-              style="
-                background: rgba(122, 154, 101, 0.15);
-                padding: 15px;
-                border-radius: var(--radius);
-                margin-bottom: 25px;
-                border: 1px dashed var(--success-green);
-              "
-            >
-              <div style="display: flex; gap: 10px; align-items: center">
+              <div class="input-group">
                 <input
                   type="text"
                   id="learning-desc-input"
                   class="standard-input"
-                  style="flex: 1"
-                  placeholder="What important insight did you gain?"
+                  placeholder="What insight did you gain?"
                   onkeydown="if (event.key === 'Enter') addLearning();"
                 />
-                <button
-                  class="btn-action"
-                  style="background: var(--success-green)"
-                  onclick="addLearning()"
-                >
-                  Log Insight
-                </button>
+                <span class="enter-icon">↵</span>
               </div>
+              <input
+                type="text"
+                id="learning-search"
+                class="standard-input"
+                style="flex: 1"
+                placeholder="🔍 Search..."
+                oninput="renderActions()"
+              />
             </div>
             <div id="learnings-list"></div>
           </div>
 
           <div id="notes-content" class="hidden">
-            <div class="notes-toolbar" style="gap: 10px">
+            <div class="notes-toolbar">
               <button
-                class="btn-toggle-icon"
-                onclick="
-                  const p = projects.find((x) => x.id === activeId);
-                  copyToClipboard(p.notes || '', this);
-                "
-                title="Copy Notes"
-              >
-                <i class="fas fa-copy"></i>
-              </button>
-              <button
-                id="preview-toggle-btn"
                 class="btn-toggle-icon"
                 onclick="toggleMarkdown()"
                 title="Toggle Edit/Preview"
@@ -1281,50 +1283,50 @@
               id="notes-area"
               class="notes-area hidden"
               oninput="updateNotes()"
-              placeholder="Observations..."
+              placeholder="Write your thoughts here... (Markdown supported)"
             ></textarea>
             <div id="markdown-view" class="markdown-body"></div>
           </div>
 
           <div id="planner-content" class="hidden">
-            <div style="display: flex; gap: 10px; margin-bottom: 20px">
-              <input
-                type="text"
-                id="planner-search"
-                class="standard-input"
-                placeholder="🔍 Search meetings..."
-                oninput="renderActions()"
-              />
-            </div>
             <div
               style="
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 20px;
                 background: rgba(111, 78, 55, 0.05);
-                padding: 20px;
+                padding: 15px;
                 border-radius: var(--radius);
-                margin-bottom: 25px;
                 border: 1.5px solid var(--border-color);
               "
             >
               <div
                 style="
                   display: grid;
-                  grid-template-columns: 1.5fr 1fr 2fr auto;
+                  grid-template-columns: 1fr 1fr 1fr;
                   gap: 10px;
-                  align-items: center;
                 "
               >
                 <input type="date" id="plan-date" class="standard-input" />
                 <input type="time" id="plan-time" class="standard-input" />
                 <input
                   type="text"
+                  id="plan-search"
+                  class="standard-input"
+                  placeholder="🔍 Search..."
+                  oninput="renderActions()"
+                />
+              </div>
+              <div class="input-group" style="flex: 1">
+                <input
+                  type="text"
                   id="plan-desc"
                   class="standard-input"
-                  placeholder="Meeting / Event Title..."
+                  placeholder="Meeting Title..."
                   onkeydown="if (event.key === 'Enter') addMeeting();"
                 />
-                <button class="btn-action" onclick="addMeeting()">
-                  <i class="fas fa-calendar-plus"></i>
-                </button>
+                <span class="enter-icon">↵</span>
               </div>
             </div>
             <div id="planner-list"></div>
@@ -2171,11 +2173,25 @@
         const p = projects.find((x) => x.id === activeId);
         if (!p) return;
 
-        // 1. Update Header Title
+        // 1. Capture All Search Values
+        const actionSearch = document.getElementById("action-search")
+          ? document.getElementById("action-search").value.toLowerCase()
+          : "";
+        const issueSearch = document.getElementById("issue-search")
+          ? document.getElementById("issue-search").value.toLowerCase()
+          : "";
+        const learningSearch = document.getElementById("learning-search")
+          ? document.getElementById("learning-search").value.toLowerCase()
+          : "";
+        const planSearch = document.getElementById("plan-search")
+          ? document.getElementById("plan-search").value.toLowerCase()
+          : "";
+
+        // 2. Update Header Title
         const panelTitle = document.getElementById("panel-title");
         if (panelTitle) panelTitle.innerText = p.name;
 
-        // 2. Handle Project Description (Goal) & Copy Button
+        // 3. Handle Project Description (Goal) & Copy Button
         let descContainer = document.getElementById("desc-container");
         if (!descContainer) {
           descContainer = document.createElement("div");
@@ -2213,7 +2229,7 @@
             copyToClipboard(p.description || "", copyDescBtn);
         }
 
-        // 3. Project Stats
+        // 4. Project Stats
         const statsEl = document.getElementById("project-stats");
         if (statsEl) {
           const totalTime = p.actions
@@ -2222,7 +2238,35 @@
           statsEl.innerHTML = `Created: ${formatDate(p.createdAt)} • Total Session: ${formatTime(totalTime)}`;
         }
 
-        // 4. Render Tasks (Actions Tab)
+        // 5. Render Notes Tab (The "Disappearing Fix")
+        const notesArea = document.getElementById("notes-area");
+        const markdownView = document.getElementById("markdown-view");
+        const toggleIcon = document.getElementById("toggle-icon");
+
+        if (notesArea && markdownView) {
+          // Ensure we have a string to work with
+          const rawNotes = p.notes || DEFAULT_MD;
+
+          // Always update the underlying textarea so data isn't lost
+          notesArea.value = rawNotes;
+
+          if (isMarkdownMode) {
+            // FORCE the markdown engine to parse the notes into the view
+            markdownView.innerHTML = marked.parse(linkify(rawNotes));
+
+            // Manage visibility
+            markdownView.classList.remove("hidden");
+            notesArea.classList.add("hidden");
+            if (toggleIcon) toggleIcon.className = "fas fa-pen";
+          } else {
+            // If in Edit Mode, show the textarea
+            markdownView.classList.add("hidden");
+            notesArea.classList.remove("hidden");
+            if (toggleIcon) toggleIcon.className = "fas fa-eye";
+          }
+        }
+
+        // 6. Render Tasks (Actions Tab) with Filtering
         const activeList = document.getElementById("active-actions");
         const archList = document.getElementById("archived-actions");
         if (activeList && archList) {
@@ -2230,6 +2274,8 @@
           archList.innerHTML = "";
 
           (p.actions || []).forEach((a) => {
+            if (!a.text.toLowerCase().includes(actionSearch)) return;
+
             const row = document.createElement("div");
             row.className = "task-item";
             row.draggable = true;
@@ -2271,39 +2317,12 @@
           });
         }
 
-        // 5. Render Notes Tab
-        const notesArea = document.getElementById("notes-area");
-        const markdownView = document.getElementById("markdown-view");
-        const toggleIcon = document.getElementById("toggle-icon");
-        if (notesArea && markdownView) {
-          notesArea.value = p.notes || "";
-          if (isMarkdownMode) {
-            markdownView.innerHTML = marked.parse(
-              linkify(p.notes || DEFAULT_MD),
-            );
-            markdownView.classList.remove("hidden");
-            notesArea.classList.add("hidden");
-            if (toggleIcon) toggleIcon.className = "fas fa-pen";
-          } else {
-            markdownView.classList.add("hidden");
-            notesArea.classList.remove("hidden");
-            if (toggleIcon) toggleIcon.className = "fas fa-eye";
-          }
-        }
-
-        // 6. Render Learnings Tab
+        // 7. Render Learnings Tab with Filtering
         const learningsList = document.getElementById("learnings-list");
         if (learningsList) {
-          const searchVal = document
-            .getElementById("learning-search")
-            .value.toLowerCase();
           learningsList.innerHTML = "";
           const filtered = (p.events || [])
-            .filter(
-              (e) =>
-                e.text.toLowerCase().includes(searchVal) ||
-                formatDisplayDate(e.date).toLowerCase().includes(searchVal),
-            )
+            .filter((e) => e.text.toLowerCase().includes(learningSearch))
             .sort((a, b) => new Date(b.date) - new Date(a.date));
 
           filtered.forEach((e) => {
@@ -2324,20 +2343,16 @@
           });
         }
 
-        // 7. Render Issues Tab (Refined with Three-Dot Dropdown)
+        // 8. Render Issues Tab with Filtering
         const issuesList = document.getElementById("issues-list");
         if (issuesList) {
-          const searchVal = document
-            .getElementById("issue-search")
-            .value.toLowerCase();
           issuesList.innerHTML = "";
-
           const filteredIssues = (p.issues || [])
             .filter(
               (i) =>
-                (i.issueIdDisplay
-                  ? i.issueIdDisplay.toLowerCase().includes(searchVal)
-                  : false) || i.text.toLowerCase().includes(searchVal),
+                i.text.toLowerCase().includes(issueSearch) ||
+                (i.issueIdDisplay &&
+                  i.issueIdDisplay.toLowerCase().includes(issueSearch)),
             )
             .sort((a, b) => {
               if (a.status === "open" && b.status === "resolved") return -1;
@@ -2370,40 +2385,28 @@
                         <div style="font-size: 10px; color: var(--muted-tan); text-transform: uppercase; font-weight:bold;">${formatDate(i.createdAt)}</div>
                     </div>
                 </div>
-
                 <div class="issue-menu-container">
                     <button class="menu-trigger" onclick="toggleIssueMenu(event, '${i.id}')">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
                     <div id="dropdown-${i.id}" class="issue-dropdown">
-                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'task')">
-                            <i class="fas fa-tasks"></i> Create Task
-                        </div>
-                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'learning')">
-                            <i class="fas fa-lightbulb"></i> Log Insight
-                        </div>
-                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'meeting')">
-                            <i class="fas fa-calendar-alt"></i> Schedule Meeting
-                        </div>
-                        <div class="menu-item delete-item" onclick="deleteIssue('${i.id}')">
-                            <i class="fas fa-trash-alt"></i> Delete Issue
-                        </div>
+                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'task')"><i class="fas fa-tasks"></i> Create Task</div>
+                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'learning')"><i class="fas fa-lightbulb"></i> Log Insight</div>
+                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'meeting')"><i class="fas fa-calendar-alt"></i> Schedule Meeting</div>
+                        <div class="menu-item delete-item" onclick="deleteIssue('${i.id}')"><i class="fas fa-trash-alt"></i> Delete Issue</div>
                     </div>
                 </div>`;
             issuesList.appendChild(row);
           });
         }
 
-        // 8. Render Meetings Tab
+        // 9. Render Meetings Tab with Filtering
         const plannerList = document.getElementById("planner-list");
         if (plannerList) {
-          const searchVal = document
-            .getElementById("planner-search")
-            .value.toLowerCase();
           plannerList.innerHTML = "";
           const todayStr = new Date().toISOString().split("T")[0];
           const filtered = (p.meetings || [])
-            .filter((m) => m.text.toLowerCase().includes(searchVal))
+            .filter((m) => m.text.toLowerCase().includes(planSearch))
             .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
           filtered.forEach((m) => {
@@ -2442,6 +2445,9 @@
             plannerList.appendChild(row);
           });
         }
+
+        // 10. Sync Global Elements
+        renderGlobalInsights();
       }
 
       // Toggle the visibility of the three-dot menu
@@ -2786,7 +2792,7 @@
       }
 
       function switchTab(t) {
-        const tabs = ["tasks", "notes", "learnings", "issues", "planner"];
+        const tabs = ["issues", "tasks", "learnings", "notes", "planner"];
         tabs.forEach((tab) => {
           const tabBtn = document.getElementById(`tab-${tab}`);
           const content = document.getElementById(`${tab}-content`);
