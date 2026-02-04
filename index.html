@@ -2838,6 +2838,111 @@
         );
       }
 
+      function handleGlobalKeys(e) {
+        // 1. Handle Modal and Guide closing
+        if (e.key === "Escape" && isModalOpen) {
+          closeModal();
+          closeGuide();
+          return;
+        }
+
+        // 2. Handle Clear Focus / Deselect (only if not in an input)
+        if (e.key === "Escape") {
+          activeId = null;
+          if (document.activeElement) document.activeElement.blur();
+          render();
+          return;
+        }
+
+        // 3. Global Shortcut: Jump to New Project Input
+        if (
+          e.key === "/" &&
+          !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
+        ) {
+          e.preventDefault();
+          document.getElementById("project-input").focus();
+          return;
+        }
+
+        // 4. Contextual Navigation (Only when not typing in an input)
+        if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+          // --- Contextual Enter Key: Focus search/input of active tab ---
+          if (e.key === "Enter" && activeId) {
+            e.preventDefault();
+            const currentTabBtn = document.querySelector(".tab.active");
+            if (currentTabBtn) {
+              const currentTabId = currentTabBtn.id.replace("tab-", "");
+              const inputMap = {
+                tasks: "action-input",
+                learnings: "learning-desc-input",
+                issues: "issue-input",
+                planner: "plan-desc",
+              };
+              const targetInputId = inputMap[currentTabId];
+              if (targetInputId) document.getElementById(targetInputId).focus();
+            }
+            return;
+          }
+
+          // --- Tab Navigation (Left/Right Arrows) ---
+          // Note: 'planner' maps to 'planner-content' in your HTML
+          const tabOrder = ["issues", "tasks", "learnings", "notes", "planner"];
+          if (activeId && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+            e.preventDefault();
+            const currentTabBtn = document.querySelector(".tab.active");
+            if (currentTabBtn) {
+              const currentTabId = currentTabBtn.id.replace("tab-", "");
+              let currentIndex = tabOrder.indexOf(currentTabId);
+
+              if (e.key === "ArrowRight") {
+                currentIndex = (currentIndex + 1) % tabOrder.length;
+              } else if (e.key === "ArrowLeft") {
+                currentIndex =
+                  (currentIndex - 1 + tabOrder.length) % tabOrder.length;
+              }
+              switchTab(tabOrder[currentIndex]);
+            }
+          }
+
+          // --- Project Navigation (Up/Down Arrows) ---
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            const idx = projects.findIndex((p) => p.id === activeId);
+            let newActiveId = null;
+
+            if (e.key === "ArrowDown") {
+              if (idx === -1 && projects.length > 0)
+                newActiveId = projects[0].id;
+              else if (idx < projects.length - 1)
+                newActiveId = projects[idx + 1].id;
+            } else if (e.key === "ArrowUp" && idx > 0) {
+              newActiveId = projects[idx - 1].id;
+            }
+
+            if (newActiveId) {
+              activeId = newActiveId;
+              render();
+              // We keep the current tab persistent when switching projects
+              const currentTabBtn = document.querySelector(".tab.active");
+              const currentTabId = currentTabBtn
+                ? currentTabBtn.id.replace("tab-", "")
+                : "issues";
+              switchTab(currentTabId);
+
+              // Auto-scroll the sidebar to keep the active project visible
+              setTimeout(() => {
+                const activeEl = document.querySelector(".project-item.active");
+                if (activeEl)
+                  activeEl.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                  });
+              }, 50);
+            }
+          }
+        }
+      }
+
       function save() {
         localStorage.setItem("pf-v12", JSON.stringify(projects));
         localStorage.setItem("pf-pomo-v12", JSON.stringify(pomoHistory));
