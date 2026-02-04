@@ -641,6 +641,148 @@
       .p-actions .btn-icon:hover {
         color: var(--success-green) !important;
       }
+
+      /* --- ISSUE DROPDOWN MENU --- */
+      .issue-menu-container {
+        position: relative;
+        display: inline-block;
+      }
+
+      .menu-trigger {
+        background: none;
+        border: none;
+        color: var(--muted-tan);
+        cursor: pointer;
+        padding: 10px;
+        font-size: 18px;
+        transition: color 0.2s;
+      }
+
+      .menu-trigger:hover {
+        color: var(--accent-brown);
+      }
+
+      .issue-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: var(--paper-white);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        min-width: 160px;
+        overflow: hidden;
+      }
+
+      .issue-dropdown.show {
+        display: block;
+      }
+
+      .menu-item {
+        padding: 12px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background 0.2s;
+      }
+
+      .menu-item:hover {
+        background: rgba(215, 204, 200, 0.2);
+      }
+
+      .menu-item i {
+        width: 16px;
+        color: var(--muted-tan);
+      }
+
+      .menu-item.delete-item {
+        color: #a66363;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .control-tower {
+        position: fixed; /* Keeps it pinned while you scroll the notebook */
+        right: 30px;
+        top: 20px;
+        width: 260px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 100;
+      }
+
+      .insight-section {
+        background: var(--paper-white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Specific styling for the Pomo/Chart widget */
+      .dashboard-widget {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .insight-header {
+        font-family: "Special Elite", cursive;
+        font-size: 11px;
+        margin: 0 0 12px 0;
+        color: var(--accent-brown);
+        border-bottom: 1px dashed var(--muted-tan);
+        padding-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .insight-stat-item {
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .chronology-list {
+        max-height: calc(100vh - 450px); /* Adjusts based on screen height */
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .chronology-item {
+        border-left: 3px solid var(--muted-tan);
+        padding-left: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .chronology-item:hover {
+        transform: none;
+        border-left-color: var(--accent-brown);
+      }
+
+      .chronology-item b {
+        display: block;
+        font-size: 12px;
+        color: var(--primary-dark);
+      }
+
+      .chronology-item span {
+        color: var(--accent-brown);
+        font-size: 10px;
+        font-weight: 700;
+      }
     </style>
   </head>
   <body onkeydown="handleGlobalKeys(event)">
@@ -919,22 +1061,38 @@
           />
         </div>
       </aside>
-
       <main class="main-view">
-        <div class="dashboard-container">
-          <div class="dash-title">Last 7 Days Focus</div>
-          <div class="dash-grid" id="dash-grid"></div>
-
-          <div
-            id="timer-display-box"
-            class="timer-display"
-            title="Click: Start | Hold: Set Time"
-          >
-            <span id="timer-display" style="font-size: 18px; font-weight: bold"
-              >25:00</span
+        <aside class="control-tower">
+          <div class="insight-section dashboard-widget">
+            <div class="dash-title">Last 7 Days Focus</div>
+            <div class="dash-grid" id="dash-grid"></div>
+            <div
+              id="timer-display-box"
+              class="timer-display"
+              title="Click: Start | Hold: Set Time"
             >
+              <span
+                id="timer-display"
+                style="font-size: 18px; font-weight: bold"
+                >25:00</span
+              >
+            </div>
           </div>
-        </div>
+
+          <div class="insight-section">
+            <h4 class="insight-header">
+              <i class="fas fa-chart-line"></i> Global Status
+            </h4>
+            <div id="global-stats-content"></div>
+          </div>
+
+          <div class="insight-section">
+            <h4 class="insight-header">
+              <i class="fas fa-calendar-check"></i> Master Schedule
+            </h4>
+            <div id="global-schedule-content" class="chronology-list"></div>
+          </div>
+        </aside>
 
         <div
           id="empty-state"
@@ -996,7 +1154,46 @@
             </div>
           </div>
 
-          <div id="tasks-content">
+          <div id="issues-content">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px">
+              <input
+                type="text"
+                id="issue-search"
+                class="standard-input"
+                placeholder="🔍 Search issues..."
+                oninput="renderActions()"
+              />
+            </div>
+            <div
+              style="
+                background: rgba(166, 99, 99, 0.1);
+                padding: 15px;
+                border-radius: var(--radius);
+                margin-bottom: 20px;
+                border: 1px solid rgba(166, 99, 99, 0.2);
+              "
+            >
+              <div style="display: flex; gap: 10px">
+                <input
+                  type="text"
+                  id="issue-input"
+                  class="standard-input"
+                  placeholder="What is the issue?"
+                  onkeydown="if (event.key === 'Enter') addIssue();"
+                />
+                <button
+                  class="btn-action"
+                  style="background: #a66363"
+                  onclick="addIssue()"
+                >
+                  Report
+                </button>
+              </div>
+            </div>
+            <div id="issues-list"></div>
+          </div>
+
+          <div id="tasks-content" class="hidden">
             <input
               type="text"
               id="action-input"
@@ -1019,47 +1216,16 @@
             ></div>
           </div>
 
-          <div id="notes-content" class="hidden">
-            <div class="notes-toolbar" style="gap: 10px">
-              <button
-                class="btn-toggle-icon"
-                onclick="
-                  const p = projects.find((x) => x.id === activeId);
-                  copyToClipboard(p.notes || '', this);
-                "
-                title="Copy Notes"
-              >
-                <i class="fas fa-copy"></i>
-              </button>
-
-              <button
-                id="preview-toggle-btn"
-                class="btn-toggle-icon"
-                onclick="toggleMarkdown()"
-                title="Toggle Edit/Preview"
-              >
-                <i id="toggle-icon" class="fas fa-pen"></i>
-              </button>
-            </div>
-            <textarea
-              id="notes-area"
-              class="notes-area hidden"
-              oninput="updateNotes()"
-              placeholder="Observations..."
-            ></textarea>
-            <div id="markdown-view" class="markdown-body"></div>
-          </div>
           <div id="learnings-content" class="hidden">
             <div style="display: flex; gap: 10px; margin-bottom: 20px">
               <input
                 type="text"
                 id="learning-search"
                 class="standard-input"
-                placeholder="🔍 Search knowledge base..."
+                placeholder="🔍 Search learnings..."
                 oninput="renderActions()"
               />
             </div>
-
             <div
               style="
                 background: rgba(122, 154, 101, 0.15);
@@ -1087,49 +1253,39 @@
                 </button>
               </div>
             </div>
-
             <div id="learnings-list"></div>
           </div>
-          <div id="issues-content" class="hidden">
-            <div style="display: flex; gap: 10px; margin-bottom: 20px">
-              <input
-                type="text"
-                id="issue-search"
-                class="standard-input"
-                placeholder="🔍 Search issues..."
-                oninput="renderActions()"
-              />
-            </div>
 
-            <div
-              style="
-                background: rgba(166, 99, 99, 0.1);
-                padding: 15px;
-                border-radius: var(--radius);
-                margin-bottom: 20px;
-                border: 1px solid rgba(166, 99, 99, 0.2);
-              "
-            >
-              <div style="display: flex; gap: 10px">
-                <input
-                  type="text"
-                  id="issue-input"
-                  class="standard-input"
-                  placeholder="What is the issue?"
-                  onkeydown="if (event.key === 'Enter') addIssue();"
-                />
-                <button
-                  class="btn-action"
-                  style="background: #a66363"
-                  onclick="addIssue()"
-                >
-                  Report
-                </button>
-              </div>
+          <div id="notes-content" class="hidden">
+            <div class="notes-toolbar" style="gap: 10px">
+              <button
+                class="btn-toggle-icon"
+                onclick="
+                  const p = projects.find((x) => x.id === activeId);
+                  copyToClipboard(p.notes || '', this);
+                "
+                title="Copy Notes"
+              >
+                <i class="fas fa-copy"></i>
+              </button>
+              <button
+                id="preview-toggle-btn"
+                class="btn-toggle-icon"
+                onclick="toggleMarkdown()"
+                title="Toggle Edit/Preview"
+              >
+                <i id="toggle-icon" class="fas fa-pen"></i>
+              </button>
             </div>
-
-            <div id="issues-list"></div>
+            <textarea
+              id="notes-area"
+              class="notes-area hidden"
+              oninput="updateNotes()"
+              placeholder="Observations..."
+            ></textarea>
+            <div id="markdown-view" class="markdown-body"></div>
           </div>
+
           <div id="planner-content" class="hidden">
             <div style="display: flex; gap: 10px; margin-bottom: 20px">
               <input
@@ -1140,7 +1296,6 @@
                 oninput="renderActions()"
               />
             </div>
-
             <div
               style="
                 background: rgba(111, 78, 55, 0.05);
@@ -1172,7 +1327,6 @@
                 </button>
               </div>
             </div>
-
             <div id="planner-list"></div>
           </div>
         </div>
@@ -1414,6 +1568,61 @@
         }
       }
 
+      function renderGlobalInsights() {
+        const statsContent = document.getElementById("global-stats-content");
+        const scheduleContent = document.getElementById(
+          "global-schedule-content",
+        );
+
+        let totalPending = 0;
+        let totalIssues = 0;
+        let allMeetings = [];
+
+        projects.forEach((p) => {
+          totalPending += p.actions.filter((a) => !a.done).length;
+          totalIssues += (p.issues || []).filter(
+            (i) => i.status === "open",
+          ).length;
+
+          if (p.meetings) {
+            p.meetings.forEach((m) => {
+              allMeetings.push({ ...m, projectName: p.name });
+            });
+          }
+        });
+
+        // Render Stats
+        statsContent.innerHTML = `
+        <div class="insight-stat-item"><span>Pending Actions:</span> <span>${totalPending}</span></div>
+        <div class="insight-stat-item" style="color: #a66363"><span>Open Issues:</span> <span>${totalIssues}</span></div>
+    `;
+
+        // Render Schedule in proper chronology
+        const upcoming = allMeetings
+          .filter((m) => new Date(m.date) >= new Date().setHours(0, 0, 0, 0))
+          .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+        scheduleContent.innerHTML = upcoming.length
+          ? ""
+          : "<p style='font-size:11px; opacity:0.5'>No upcoming meetings.</p>";
+
+        upcoming.forEach((m) => {
+          const item = document.createElement("div");
+          item.className = "chronology-item";
+          // Highlight if today
+          if (m.date === new Date().toISOString().split("T")[0]) {
+            item.style.borderColor = "var(--accent-brown)";
+          }
+
+          item.innerHTML = `
+            <b>${m.text}</b>
+            <span>${formatDisplayDate(m.date)} @ ${m.time}</span>
+            <div style="font-size:9px; opacity:0.6">${m.projectName}</div>
+        `;
+          scheduleContent.appendChild(item);
+        });
+      }
+
       function renderDashboard() {
         const grid = document.getElementById("dash-grid");
         grid.innerHTML = "";
@@ -1511,6 +1720,7 @@
           document.getElementById("actions-panel").classList.add("hidden");
         }
 
+        renderGlobalInsights();
         renderDashboard();
         updateTimerDisplay();
       }
@@ -2037,35 +2247,34 @@
               .join(", ");
 
             row.innerHTML = `
-          <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
-          <input type="checkbox" ${a.done ? "checked" : ""} onchange="toggleAction('${a.id}')">
-          <div style="flex: 1; display: flex; flex-direction: column;">
-              <span class="task-text ${a.done ? "done" : ""}" onclick="editActionText('${a.id}')">
-                  ${linkify(a.text)} 
-                  <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(a.createdAt)}</small>
-              </span>
-              <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
-                  ${a.members && a.members.length > 0 ? "Assigned: " + taskMemberHtml : ""}
-              </small>
-          </div>
-          <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${a.id}')">
-              ${formatTime(a.timeSpent)}
-          </span>
-          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${a.id}')">
-              <i class="fas fa-user-plus"></i>
-          </button>
-          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${a.id}')">
-              <i class="fas fa-times"></i>
-          </button>`;
+                <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
+                <input type="checkbox" ${a.done ? "checked" : ""} onchange="toggleAction('${a.id}')">
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <span class="task-text ${a.done ? "done" : ""}" onclick="editActionText('${a.id}')">
+                        ${linkify(a.text)} 
+                        <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(a.createdAt)}</small>
+                    </span>
+                    <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
+                        ${a.members && a.members.length > 0 ? "Assigned: " + taskMemberHtml : ""}
+                    </small>
+                </div>
+                <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${a.id}')">
+                    ${formatTime(a.timeSpent)}
+                </span>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${a.id}')">
+                    <i class="fas fa-user-plus"></i>
+                </button>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${a.id}')">
+                    <i class="fas fa-times"></i>
+                </button>`;
             (a.done ? archList : activeList).appendChild(row);
           });
         }
 
-        // 5. Render Notes Tab (Linked Markdown)
+        // 5. Render Notes Tab
         const notesArea = document.getElementById("notes-area");
         const markdownView = document.getElementById("markdown-view");
         const toggleIcon = document.getElementById("toggle-icon");
-
         if (notesArea && markdownView) {
           notesArea.value = p.notes || "";
           if (isMarkdownMode) {
@@ -2085,10 +2294,10 @@
         // 6. Render Learnings Tab
         const learningsList = document.getElementById("learnings-list");
         if (learningsList) {
-          const searchInput = document.getElementById("learning-search");
-          const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
+          const searchVal = document
+            .getElementById("learning-search")
+            .value.toLowerCase();
           learningsList.innerHTML = "";
-
           const filtered = (p.events || [])
             .filter(
               (e) =>
@@ -2101,25 +2310,21 @@
             const row = document.createElement("div");
             row.className = "task-item";
             row.innerHTML = `
-          <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1; cursor: pointer;" onclick="editLearning('${e.id}')">
-              <i class="fas fa-lightbulb" style="color: #e6b800; margin-top: 5px;"></i>
-              <div style="flex: 1;">
-                  <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); text-transform: uppercase;">
-                      ${formatDisplayDate(e.date)}
-                  </div>
-                  <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark); line-height: 1.4;">
-                      ${linkify(e.text)}
-                  </div>
-              </div>
-          </div>
-          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteLearning('${e.id}')">
-              <i class="fas fa-trash-alt"></i>
-          </button>`;
+                <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1; cursor: pointer;" onclick="editLearning('${e.id}')">
+                    <i class="fas fa-lightbulb" style="color: #e6b800; margin-top: 5px;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); text-transform: uppercase;">${formatDisplayDate(e.date)}</div>
+                        <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark); line-height: 1.4;">${linkify(e.text)}</div>
+                    </div>
+                </div>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteLearning('${e.id}')">
+                    <i class="fas fa-trash-alt"></i>
+                </button>`;
             learningsList.appendChild(row);
           });
         }
 
-        // 7. Render Issues Tab (Unique ID & Search)
+        // 7. Render Issues Tab (Refined with Three-Dot Dropdown)
         const issuesList = document.getElementById("issues-list");
         if (issuesList) {
           const searchVal = document
@@ -2128,13 +2333,12 @@
           issuesList.innerHTML = "";
 
           const filteredIssues = (p.issues || [])
-            .filter((i) => {
-              const idMatch = i.issueIdDisplay
-                ? i.issueIdDisplay.toLowerCase().includes(searchVal)
-                : false;
-              const textMatch = i.text.toLowerCase().includes(searchVal);
-              return idMatch || textMatch;
-            })
+            .filter(
+              (i) =>
+                (i.issueIdDisplay
+                  ? i.issueIdDisplay.toLowerCase().includes(searchVal)
+                  : false) || i.text.toLowerCase().includes(searchVal),
+            )
             .sort((a, b) => {
               if (a.status === "open" && b.status === "resolved") return -1;
               if (a.status === "resolved" && b.status === "open") return 1;
@@ -2149,40 +2353,48 @@
               ? "4px solid var(--success-green)"
               : "4px solid #a66363";
             row.style.paddingLeft = "12px";
-            row.style.marginBottom = "8px";
             row.style.background = isResolved
-              ? "rgba(255,255,255,0.5)"
+              ? "rgba(255,255,255,0.3)"
               : "transparent";
 
-            const displayIdTag = i.issueIdDisplay
-              ? `[${i.issueIdDisplay}]`
-              : "";
-
             row.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-              <button onclick="toggleIssueStatus('${i.id}')" 
-                      style="border:none; background:none; cursor:pointer; color:${isResolved ? "var(--success-green)" : "#a66363"}"
-                      title="${isResolved ? "Re-open" : "Resolve"}">
-                  <i class="fas ${isResolved ? "fa-check-circle" : "fa-exclamation-circle"} fa-lg"></i>
-              </button>
-              <div style="flex: 1; cursor: pointer; ${isResolved ? "opacity: 0.5; text-decoration: line-through;" : ""}" onclick="editIssue('${i.id}')">
-                  <div style="font-size: 15px; font-weight: 700; color: var(--primary-dark);">
-                      <span style="font-family: 'Special Elite', monospace; color: var(--accent-brown); margin-right: 8px; font-size: 14px;">${displayIdTag}</span>
-                      ${i.text}
-                  </div>
-                  <div style="font-size: 10px; color: var(--muted-tan); text-transform: uppercase; font-weight:bold;">
-                      ${formatDate(i.createdAt)} ${isResolved ? "• RESOLVED" : "• OPEN"}
-                  </div>
-              </div>
-          </div>
-          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteIssue('${i.id}')">
-              <i class="fas fa-trash-alt"></i>
-          </button>`;
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                    <button onclick="toggleIssueStatus('${i.id}')" style="border:none; background:none; cursor:pointer; color:${isResolved ? "var(--success-green)" : "#a66363"}">
+                        <i class="fas ${isResolved ? "fa-check-circle" : "fa-exclamation-circle"} fa-lg"></i>
+                    </button>
+                    <div style="flex: 1; cursor: pointer; ${isResolved ? "opacity: 0.5; text-decoration: line-through;" : ""}" onclick="editIssue('${i.id}')">
+                        <div style="font-size: 15px; font-weight: 700; color: var(--primary-dark);">
+                            <span style="font-family: 'Special Elite', monospace; color: var(--accent-brown); margin-right: 8px;">[${i.issueIdDisplay}]</span>
+                            ${i.text}
+                        </div>
+                        <div style="font-size: 10px; color: var(--muted-tan); text-transform: uppercase; font-weight:bold;">${formatDate(i.createdAt)}</div>
+                    </div>
+                </div>
+
+                <div class="issue-menu-container">
+                    <button class="menu-trigger" onclick="toggleIssueMenu(event, '${i.id}')">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div id="dropdown-${i.id}" class="issue-dropdown">
+                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'task')">
+                            <i class="fas fa-tasks"></i> Create Task
+                        </div>
+                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'learning')">
+                            <i class="fas fa-lightbulb"></i> Log Insight
+                        </div>
+                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'meeting')">
+                            <i class="fas fa-calendar-alt"></i> Schedule Meeting
+                        </div>
+                        <div class="menu-item delete-item" onclick="deleteIssue('${i.id}')">
+                            <i class="fas fa-trash-alt"></i> Delete Issue
+                        </div>
+                    </div>
+                </div>`;
             issuesList.appendChild(row);
           });
         }
 
-        // 8. Render Meetings Tab (formerly Planner)
+        // 8. Render Meetings Tab
         const plannerList = document.getElementById("planner-list");
         if (plannerList) {
           const searchVal = document
@@ -2190,7 +2402,6 @@
             .value.toLowerCase();
           plannerList.innerHTML = "";
           const todayStr = new Date().toISOString().split("T")[0];
-
           const filtered = (p.meetings || [])
             .filter((m) => m.text.toLowerCase().includes(searchVal))
             .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
@@ -2199,63 +2410,97 @@
             const isToday = m.date === todayStr;
             const row = document.createElement("div");
             row.className = "task-item";
-
-            // Add vertical spacing between meeting entries
-            row.style.marginBottom = "12px";
-            row.style.paddingBottom = "12px";
-            row.style.borderBottom = "1px solid #f5f1ed";
-
             if (isToday) {
               row.style.borderLeft = "4px solid var(--accent-brown)";
               row.style.background = "rgba(111, 78, 55, 0.03)";
               row.style.paddingLeft = "10px";
             }
 
-            // Map members to clickable spans for removal
-            const meetingMemberHtml = (m.members || [])
+            const mHtml = (m.members || [])
               .map(
                 (name) =>
-                  `<span onclick="event.stopPropagation(); removeMember('meeting', '${m.id}', '${name}')" style="cursor:pointer; text-decoration:underline;" title="Click to remove">${name}</span>`,
+                  `<span onclick="event.stopPropagation(); removeMember('meeting', '${m.id}', '${name}')" style="cursor:pointer; text-decoration:underline;">${name}</span>`,
               )
               .join(", ");
 
             row.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 15px; flex: 1; cursor: pointer;" onclick="editMeeting('${m.id}')">
-                <div style="min-width: 50px; text-align: center; font-family: 'Special Elite', cursive; color: var(--accent-brown);">
-                    <div style="font-size: 10px; opacity: 0.7;">${new Date(m.date).toLocaleString("default", { month: "short" })}</div>
-                    <div style="font-size: 18px; font-weight: bold; line-height: 1;">${m.date.split("-")[2]}</div>
-                </div>
-
-                <div style="flex: 1; display: flex; flex-direction: column;">
-                    <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); display: flex; align-items: center; gap: 5px;">
-                        <i class="far fa-clock"></i> ${m.time}
+                <div style="display: flex; align-items: center; gap: 15px; flex: 1; cursor: pointer;" onclick="editMeeting('${m.id}')">
+                    <div style="min-width: 50px; text-align: center; font-family: 'Special Elite', cursive; color: var(--accent-brown);">
+                        <div style="font-size: 10px; opacity: 0.7;">${new Date(m.date).toLocaleString("default", { month: "short" })}</div>
+                        <div style="font-size: 18px; font-weight: bold;">${m.date.split("-")[2]}</div>
                     </div>
-                    <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark);">
-                        ${linkify(m.text)}
+                    <div style="flex: 1;">
+                        <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan);"><i class="far fa-clock"></i> ${m.time}</div>
+                        <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark);">${linkify(m.text)}</div>
+                        <small style="font-size: 10px; color: var(--accent-brown); font-weight: bold;">${m.members && m.members.length > 0 ? "👥 " + mHtml : ""}</small>
                     </div>
-                    <small style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
-                        ${m.members && m.members.length > 0 ? "👥 " + meetingMemberHtml : ""}
-                    </small>
                 </div>
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-left: 10px;">
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; font-size: 14px;" 
-                        onclick="rescheduleMeeting('${m.id}')" title="Reschedule">
-                    <i class="fas fa-calendar-alt"></i>
-                </button>
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; font-size: 14px;" 
-                        onclick="deleteMeeting('${m.id}')" title="Delete">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>
-        `;
+                <div style="display: flex; gap: 10px;">
+                    <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="rescheduleMeeting('${m.id}')"><i class="fas fa-calendar-alt"></i></button>
+                    <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteMeeting('${m.id}')"><i class="fas fa-trash-alt"></i></button>
+                </div>`;
             plannerList.appendChild(row);
           });
+        }
+      }
 
-          if (filtered.length === 0 && searchVal !== "") {
-            plannerList.innerHTML = `<p style="text-align:center; opacity:0.5; font-size:13px; margin-top:20px;">No meetings found matching "${searchVal}"</p>`;
-          }
+      // Toggle the visibility of the three-dot menu
+      function toggleIssueMenu(event, id) {
+        event.stopPropagation();
+        // Close all other open dropdowns first
+        document.querySelectorAll(".issue-dropdown").forEach((d) => {
+          if (d.id !== `dropdown-${id}`) d.classList.remove("show");
+        });
+        document.getElementById(`dropdown-${id}`).classList.toggle("show");
+      }
+
+      // Global click listener to close menu when clicking outside
+      window.addEventListener("click", () => {
+        document
+          .querySelectorAll(".issue-dropdown")
+          .forEach((d) => d.classList.remove("show"));
+      });
+
+      // Conversion Logic
+      function convertIssueTo(issueId, type) {
+        const p = projects.find((x) => x.id === activeId);
+        const issue = p.issues.find((i) => i.id === issueId);
+        const ref = issue.issueIdDisplay; // The #101
+
+        let targetTab = "";
+        let inputId = "";
+
+        switch (type) {
+          case "task":
+            targetTab = "tasks";
+            inputId = "action-input";
+            break;
+          case "learning":
+            targetTab = "learnings";
+            inputId = "learning-desc-input";
+            break;
+          case "meeting":
+            targetTab = "planner";
+            inputId = "plan-desc";
+            break;
+        }
+
+        // 1. Switch the UI to the correct notebook tab
+        switchTab(targetTab);
+
+        // 2. Locate the specific input field
+        const inputField = document.getElementById(inputId);
+        if (inputField) {
+          // 3. Set the value inside square brackets
+          inputField.value = `[${ref}] `;
+
+          // 4. Focus and move cursor to end
+          setTimeout(() => {
+            inputField.focus();
+            const val = inputField.value;
+            inputField.value = "";
+            inputField.value = val;
+          }, 100);
         }
       }
 
@@ -2345,114 +2590,102 @@
         localStorage.setItem("pf-v12", JSON.stringify(projects));
       }
 
-      function handleGlobalKeys(e) {
-        // 1. Handle Modal and Guide closing
-        if (e.key === "Escape" && isModalOpen) {
-          closeModal();
-          closeGuide();
-          return;
-        }
+      function renderGlobalInsights() {
+        const statsContent = document.getElementById("global-stats-content");
+        const scheduleContent = document.getElementById(
+          "global-schedule-content",
+        );
 
-        // 2. Handle Clear Focus / Deselect (only if not in an input)
-        if (e.key === "Escape") {
-          activeId = null;
-          document.activeElement.blur();
-          render();
-          return;
-        }
+        if (!statsContent || !scheduleContent) return;
 
-        // 3. Global Shortcut: Jump to New Project Input
-        if (
-          e.key === "/" &&
-          !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
-        ) {
-          e.preventDefault();
-          document.getElementById("project-input").focus();
-          return;
-        }
+        let totalPendingActions = 0;
+        let totalOpenIssues = 0;
+        let allMeetings = [];
+        const todayStr = new Date().toISOString().split("T")[0];
 
-        // 4. Contextual Shortcuts (Only when not already typing)
-        if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
-          // --- UPDATED: Contextual Enter Key ---
-          if (e.key === "Enter" && activeId) {
-            e.preventDefault();
+        // 1. Aggregate data from every project
+        projects.forEach((p) => {
+          // Count tasks not marked as 'done'
+          totalPendingActions += (p.actions || []).filter(
+            (a) => !a.done,
+          ).length;
 
-            const currentTabBtn = document.querySelector(".tab.active");
-            if (currentTabBtn) {
-              const currentTabId = currentTabBtn.id.replace("tab-", "");
+          // Count issues marked as 'open'
+          totalOpenIssues += (p.issues || []).filter(
+            (i) => i.status === "open",
+          ).length;
 
-              // Map of Tab IDs to their respective Input IDs
-              const inputMap = {
-                tasks: "action-input",
-                learnings: "learning-desc-input",
-                issues: "issue-input",
-                planner: "plan-desc",
-              };
+          // Collect all meetings and tag them with their project name/ID for navigation
+          if (p.meetings) {
+            p.meetings.forEach((m) => {
+              allMeetings.push({
+                ...m,
+                projectName: p.name,
+                projectId: p.id,
+              });
+            });
+          }
+        });
 
-              const targetInputId = inputMap[currentTabId];
-              if (targetInputId) {
-                document.getElementById(targetInputId).focus();
-              } else if (currentTabId === "notes") {
-                // Special case for Notes: Toggle edit mode and focus
-                if (isMarkdownMode) toggleMarkdown();
-                document.getElementById("notes-area").focus();
-              }
-            }
-            return;
+        // 2. Render the Global Stats
+        statsContent.innerHTML = `
+        <div class="insight-stat-item">
+            <span>Pending Actions</span>
+            <span>${totalPendingActions}</span>
+        </div>
+        <div class="insight-stat-item" style="color: ${totalOpenIssues > 0 ? "#a66363" : "var(--muted-tan)"}">
+            <span>Open Issues</span>
+            <span>${totalOpenIssues}</span>
+        </div>
+    `;
+
+        // 3. Process and Sort Master Schedule
+        // Filter out past meetings (older than today) and sort by date then time
+        const upcoming = allMeetings
+          .filter((m) => m.date >= todayStr)
+          .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+        // Clear previous list
+        scheduleContent.innerHTML = upcoming.length
+          ? ""
+          : "<p style='font-size:11px; opacity:0.5; text-align:center;'>No upcoming meetings.</p>";
+
+        // 4. Render Chronological Items
+        upcoming.forEach((m) => {
+          const item = document.createElement("div");
+          item.className = "chronology-item";
+
+          // Highlight logic for today's meetings
+          if (m.date === todayStr) {
+            item.style.borderColor = "var(--success-green)";
+            item.style.background = "rgba(122, 154, 101, 0.05)";
           }
 
-          // --- Tab Navigation (Left/Right) ---
-          const tabOrder = ["issues", "tasks", "learnings", "notes", "planner"];
+          // Action: Click to switch to that project and open the Planner tab
+          item.onclick = () => {
+            activeId = m.projectId;
+            render(); // This will refresh the sidebar and main view
+            switchTab("planner");
 
-          if (activeId && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
-            e.preventDefault();
-            const currentTabBtn = document.querySelector(".tab.active");
-            if (currentTabBtn) {
-              const currentTabId = currentTabBtn.id.replace("tab-", "");
-              let currentIndex = tabOrder.indexOf(currentTabId);
+            // Optional: Smooth scroll the meeting into view in the main notebook
+            setTimeout(() => {
+              const target = document.querySelector(
+                `#planner-list [onclick*="${m.id}"]`,
+              );
+              if (target)
+                target.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 100);
+          };
 
-              if (e.key === "ArrowRight") {
-                currentIndex = (currentIndex + 1) % tabOrder.length;
-              } else if (e.key === "ArrowLeft") {
-                currentIndex =
-                  (currentIndex - 1 + tabOrder.length) % tabOrder.length;
-              }
-
-              switchTab(tabOrder[currentIndex]);
-            }
-          }
-
-          // --- Project Navigation (Up/Down) ---
-          // --- Project Navigation (Up/Down) ---
-          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-            e.preventDefault();
-
-            const idx = projects.findIndex((p) => p.id === activeId);
-            let newActiveId = null;
-
-            if (e.key === "ArrowDown" && idx < projects.length - 1) {
-              newActiveId = projects[idx + 1].id;
-            } else if (e.key === "ArrowUp" && idx > 0) {
-              newActiveId = projects[idx - 1].id;
-            }
-
-            if (newActiveId) {
-              activeId = newActiveId;
-              render();
-
-              // ADD THIS LINE BELOW
-              switchTab("issues");
-
-              const activeEl = document.querySelector(".project-item.active");
-              if (activeEl) {
-                activeEl.scrollIntoView({
-                  behavior: "smooth",
-                  block: "nearest",
-                });
-              }
-            }
-          }
-        }
+          item.innerHTML = `
+            <b>${m.text}</b>
+            <span>${m.time} • ${formatDisplayDate(m.date)}</span>
+            <div style="font-size:9px; opacity:0.6; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">
+                <i class="fas fa-folder-open" style="font-size:8px;"></i> ${m.projectName}
+            </div>
+        `;
+          scheduleContent.appendChild(item);
+        });
       }
 
       // Function to add a project member
