@@ -836,125 +836,214 @@
         <h2
           style="
             font-family: &quot;Special Elite&quot;;
-            margin-top: 0;
             color: var(--accent-brown);
             text-align: center;
-            font-size: 28px;
-            margin-bottom: 10px;
+            margin-bottom: 25px;
           "
         >
-          Welcome to Project Flow
+          The Project Flow
         </h2>
-        <p
-          style="
-            text-align: center;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--muted-tan);
-            margin-bottom: 30px;
-          "
-        >
-          To help you stay in the zone, the interface is divided into three
-          regions.
-        </p>
 
         <div
-          style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px"
+          style="
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 30px 20px;
+            background: rgba(215, 204, 200, 0.1);
+            border-radius: 12px;
+            border: 1px dashed var(--muted-tan);
+          "
         >
-          <div class="guide-column">
-            <div style="text-align: center; margin-bottom: 15px">
-              <i
-                class="fas fa-list-ul fa-2x"
-                style="color: var(--muted-tan)"
-              ></i>
-              <h4
-                style="
-                  margin: 10px 0;
-                  text-transform: uppercase;
-                  letter-spacing: 1px;
-                "
-              >
-                1. Navigation Sidebar
-              </h4>
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              width: 150px;
+            "
+          >
+            <div
+              style="
+                background: #a66363;
+                color: white;
+                width: 100%;
+                padding: 12px 0;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 13px;
+                text-align: center;
+                box-shadow: 0 4px 0 #854d4d;
+              "
+            >
+              QUEST
             </div>
-            <div class="guide-step">
-              <b>Manage Your Roadmap</b><br />
-              This is your high-level view. Use it to separate different
-              projects. You can <b>drag & drop</b> projects to prioritize your
-              list.
-            </div>
-            <div class="guide-step">
-              <b>Backups</b><br />
-              At the bottom, you'll find <b>Export</b> to save your data as a
-              file and <b>Import</b> to restore your workspace on any device.
-            </div>
+            <p
+              style="
+                font-size: 11px;
+                margin-top: 12px;
+                color: var(--primary-dark);
+                line-height: 1.4;
+                text-align: center;
+              "
+            >
+              Define the<br /><b>Question</b>
+            </p>
           </div>
 
-          <div class="guide-column">
-            <div style="text-align: center; margin-bottom: 15px">
-              <i
-                class="fas fa-pen-nib fa-2x"
-                style="color: var(--muted-tan)"
-              ></i>
-              <h4
-                style="
-                  margin: 10px 0;
-                  text-transform: uppercase;
-                  letter-spacing: 1px;
-                "
-              >
-                2. Active Workspace
-              </h4>
+          <i
+            class="fas fa-chevron-right"
+            style="
+              color: var(--muted-tan);
+              font-size: 18px;
+              margin-top: 15px;
+              padding: 0 5px;
+            "
+          ></i>
+
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              width: 150px;
+            "
+          >
+            <div
+              style="
+                background: var(--muted-tan);
+                color: white;
+                width: 100%;
+                padding: 12px 0;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 13px;
+                text-align: center;
+                box-shadow: 0 4px 0 #a88a6a;
+              "
+            >
+              ACTIONS
             </div>
-            <div class="guide-step">
-              <b>The Center of Action</b><br />
-              Once a project is open, list your tasks here.
-              <b>Click any text</b> (project/task) to rename it.
-              <b>Click the "0m"</b> to manually log focus time for that task.
-            </div>
-            <div class="guide-step">
-              <b>Capture Details</b><br />
-              Switch to the <b>Notes</b> tab to capture ideas/thoughts. Use the
-              <i class="fas fa-pen"></i> icon to toggle between writing and a
-              clean reading view. Make use of markdown features.
-            </div>
+            <p
+              style="
+                font-size: 11px;
+                margin-top: 12px;
+                color: var(--primary-dark);
+                line-height: 1.4;
+                text-align: center;
+              "
+            >
+              Define steps to find<br />the <b>Answer</b>
+            </p>
           </div>
 
-          <div class="guide-column">
-            <div style="text-align: center; margin-bottom: 15px">
+          <i
+            class="fas fa-chevron-right"
+            style="
+              color: var(--muted-tan);
+              font-size: 18px;
+              margin-top: 15px;
+              padding: 0 5px;
+            "
+          ></i>
+
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              width: 150px;
+            "
+          >
+            <div
+              style="
+                background: var(--success-green);
+                color: white;
+                width: 100%;
+                padding: 12px 0;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 13px;
+                text-align: center;
+                box-shadow: 0 4px 0 #617c50;
+              "
+            >
+              LEARNING
+            </div>
+            <p
+              style="
+                font-size: 11px;
+                margin-top: 12px;
+                color: var(--primary-dark);
+                line-height: 1.4;
+                text-align: center;
+              "
+            >
+              Log the<br /><b>Discovery</b>
+            </p>
+          </div>
+        </div>
+
+        <div
+          style="
+            background: #fdfbf7;
+            border-left: 4px solid var(--muted-tan);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 0 8px 8px 0;
+          "
+        >
+          <h5
+            style="
+              margin: 0 0 12px 0;
+              text-transform: uppercase;
+              font-size: 11px;
+              letter-spacing: 1px;
+              color: var(--accent-brown);
+            "
+          >
+            Workflow Example:
+          </h5>
+          <div
+            style="
+              font-size: 13px;
+              line-height: 1.6;
+              color: var(--primary-dark);
+            "
+          >
+            <div style="margin-bottom: 6px">
               <i
-                class="fas fa-bullseye fa-2x"
-                style="color: var(--muted-tan)"
+                class="fas fa-question-circle"
+                style="color: #a66363; width: 20px"
               ></i>
-              <h4
-                style="
-                  margin: 10px 0;
-                  text-transform: uppercase;
-                  letter-spacing: 1px;
-                "
-              >
-                3. Focus Zone
-              </h4>
+              <b>Quest:</b> "Why is the API token expiring every 5 minutes?"
             </div>
-            <div class="guide-step">
-              <b>Global Deep Work</b><br />
-              The <b>Pomo Timer</b> is "global" and is not associated to any
-              task/project internally. Time logging for task is done in the
-              workspace manually. You can <b>Long-press</b> the timer to set a
-              custom duration.
+            <div style="margin-bottom: 6px">
+              <i
+                class="fas fa-vial"
+                style="color: var(--muted-tan); width: 20px"
+              ></i>
+              <b>Action:</b> "Verify the 'expires_in' value in the OAuth
+              provider dashboard."
             </div>
-            <div class="guide-step">
-              <b>Personalize & Track</b><br />
-              The 7-day chart below tracks your focus patterns over the week.
+            <div>
+              <i
+                class="fas fa-check-circle"
+                style="color: var(--success-green); width: 20px"
+              ></i>
+              <b>Learning:</b> "Provider defaults to UTC-8; server clock was out
+              of sync, causing instant expiry."
             </div>
           </div>
         </div>
 
         <h4
           style="
-            margin: 30px 0 15px 0;
+            margin: 25px 0 15px 0;
             text-transform: uppercase;
-            font-size: 11px;
+            font-size: 10px;
             letter-spacing: 2px;
             color: var(--muted-tan);
             text-align: center;
@@ -962,73 +1051,41 @@
             padding-top: 20px;
           "
         >
-          Keyboard Shortcuts
+          System Navigation
         </h4>
         <div
           class="shortcut-legend"
           style="
-            grid-template-columns: repeat(4, 1fr);
-            background: rgba(215, 204, 200, 0.15);
-            padding: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            background: white;
+            padding: 15px;
             border-radius: 12px;
+            border: 1px solid var(--border-color);
           "
         >
-          <div
-            class="shortcut-item"
-            style="
-              flex-direction: column;
-              align-items: center;
-              text-align: center;
-            "
-          >
-            <kbd style="margin-bottom: 8px; font-size: 14px">/</kbd>
-            <span style="font-size: 11px"
-              >Jump to <b>New Project</b> input</span
-            >
+          <div class="shortcut-item">
+            <kbd>↑</kbd> <kbd>↓</kbd> <span>Select Project</span>
           </div>
-          <div
-            class="shortcut-item"
-            style="
-              flex-direction: column;
-              align-items: center;
-              text-align: center;
-            "
-          >
-            <kbd style="margin-bottom: 8px; font-size: 14px">Enter</kbd>
-            <span style="font-size: 11px">Jump to <b>New Task</b> input</span>
+          <div class="shortcut-item">
+            <kbd>←</kbd> <kbd>→</kbd> <span>Switch Tabs</span>
           </div>
-          <div
-            class="shortcut-item"
-            style="
-              flex-direction: column;
-              align-items: center;
-              text-align: center;
-            "
-          >
-            <kbd style="margin-bottom: 8px; font-size: 14px">↑</kbd>
-            <kbd style="margin-bottom: 8px; font-size: 14px">↓</kbd>
-            <span style="font-size: 11px">Cycle through <b>Projects</b></span>
+          <div class="shortcut-item">
+            <kbd>Enter</kbd> <span>Input Mode</span>
           </div>
-          <div
-            class="shortcut-item"
-            style="
-              flex-direction: column;
-              align-items: center;
-              text-align: center;
-            "
-          >
-            <kbd style="margin-bottom: 8px; font-size: 14px">Esc</kbd>
-            <span style="font-size: 11px"><b>Clear Focus</b> or Deselect</span>
+          <div class="shortcut-item"><kbd>/</kbd> <span>New Project</span></div>
+          <div class="shortcut-item">
+            <kbd>Esc</kbd> <span>Unfocus / Clear</span>
           </div>
         </div>
 
-        <div style="margin-top: 40px; display: flex; justify-content: center">
+        <div style="margin-top: 30px; display: flex; justify-content: center">
           <button
             class="btn-action"
             onclick="closeGuide()"
-            style="padding: 15px 40px; font-size: 16px"
+            style="padding: 14px 50px; font-size: 15px; letter-spacing: 1px"
           >
-            I'm Ready to Flow
+            READY TO FLOW
           </button>
         </div>
       </div>
@@ -1166,10 +1223,10 @@
           <div class="tabs">
             <div
               class="tab active"
-              onclick="switchTab('issues')"
-              id="tab-issues"
+              onclick="switchTab('quests')"
+              id="tab-quests"
             >
-              Issues
+              Quests
             </div>
             <div class="tab" onclick="switchTab('tasks')" id="tab-tasks">
               Actions
@@ -1184,31 +1241,23 @@
             <div class="tab" onclick="switchTab('notes')" id="tab-notes">
               Notes
             </div>
-            <div class="tab" onclick="switchTab('planner')" id="tab-planner">
-              Planner
+            <div class="tab" onclick="switchTab('meetings')" id="tab-meetings">
+              Meetings
             </div>
           </div>
 
-          <div id="issues-content">
+          <div id="quests-content">
             <div style="display: flex; gap: 10px; margin-bottom: 20px">
               <div class="input-group">
                 <input
                   type="text"
                   id="issue-input"
                   class="standard-input"
-                  placeholder="What is the issue?"
+                  placeholder="+ Add Quest..."
                   onkeydown="if (event.key === 'Enter') addIssue();"
                 />
                 <span class="enter-icon">↵</span>
               </div>
-              <input
-                type="text"
-                id="issue-search"
-                class="standard-input"
-                style="flex: 1"
-                placeholder="🔍 Search..."
-                oninput="renderActions()"
-              />
             </div>
             <div id="issues-list"></div>
           </div>
@@ -1252,7 +1301,7 @@
                   type="text"
                   id="learning-desc-input"
                   class="standard-input"
-                  placeholder="What insight did you gain?"
+                  placeholder="+ Add Learnings..."
                   onkeydown="if (event.key === 'Enter') addLearning();"
                 />
                 <span class="enter-icon">↵</span>
@@ -1288,7 +1337,7 @@
             <div id="markdown-view" class="markdown-body"></div>
           </div>
 
-          <div id="planner-content" class="hidden">
+          <div id="meetings-content" class="hidden">
             <div
               style="
                 display: flex;
@@ -1314,7 +1363,7 @@
                   type="text"
                   id="plan-search"
                   class="standard-input"
-                  placeholder="🔍 Search..."
+                  placeholder="🔍 Search Meetings..."
                   oninput="renderActions()"
                 />
               </div>
@@ -1329,7 +1378,7 @@
                 <span class="enter-icon">↵</span>
               </div>
             </div>
-            <div id="planner-list"></div>
+            <div id="meetings-list"></div>
           </div>
         </div>
       </main>
@@ -1665,7 +1714,7 @@
             activeId = p.id;
             isMarkdownMode = true;
             render();
-            switchTab("issues");
+            switchTab("quests");
           };
 
           el.ondragstart = (e) => {
@@ -2238,35 +2287,27 @@
           statsEl.innerHTML = `Created: ${formatDate(p.createdAt)} • Total Session: ${formatTime(totalTime)}`;
         }
 
-        // 5. Render Notes Tab (The "Disappearing Fix")
+        // 5. Render Notes Tab
         const notesArea = document.getElementById("notes-area");
         const markdownView = document.getElementById("markdown-view");
         const toggleIcon = document.getElementById("toggle-icon");
 
         if (notesArea && markdownView) {
-          // Ensure we have a string to work with
           const rawNotes = p.notes || DEFAULT_MD;
-
-          // Always update the underlying textarea so data isn't lost
           notesArea.value = rawNotes;
-
           if (isMarkdownMode) {
-            // FORCE the markdown engine to parse the notes into the view
             markdownView.innerHTML = marked.parse(linkify(rawNotes));
-
-            // Manage visibility
             markdownView.classList.remove("hidden");
             notesArea.classList.add("hidden");
             if (toggleIcon) toggleIcon.className = "fas fa-pen";
           } else {
-            // If in Edit Mode, show the textarea
             markdownView.classList.add("hidden");
             notesArea.classList.remove("hidden");
             if (toggleIcon) toggleIcon.className = "fas fa-eye";
           }
         }
 
-        // 6. Render Tasks (Actions Tab) with Filtering
+        // 6. Render Tasks (Actions Tab)
         const activeList = document.getElementById("active-actions");
         const archList = document.getElementById("archived-actions");
         if (activeList && archList) {
@@ -2293,31 +2334,31 @@
               .join(", ");
 
             row.innerHTML = `
-                <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
-                <input type="checkbox" ${a.done ? "checked" : ""} onchange="toggleAction('${a.id}')">
-                <div style="flex: 1; display: flex; flex-direction: column;">
-                    <span class="task-text ${a.done ? "done" : ""}" onclick="editActionText('${a.id}')">
-                        ${linkify(a.text)} 
-                        <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(a.createdAt)}</small>
-                    </span>
-                    <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
-                        ${a.members && a.members.length > 0 ? "Assigned: " + taskMemberHtml : ""}
-                    </small>
-                </div>
-                <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${a.id}')">
-                    ${formatTime(a.timeSpent)}
-                </span>
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${a.id}')">
-                    <i class="fas fa-user-plus"></i>
-                </button>
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${a.id}')">
-                    <i class="fas fa-times"></i>
-                </button>`;
+          <div class="drag-handle" style="cursor:grab; opacity:0.3">::</div>
+          <input type="checkbox" ${a.done ? "checked" : ""} onchange="toggleAction('${a.id}')">
+          <div style="flex: 1; display: flex; flex-direction: column;">
+              <span class="task-text ${a.done ? "done" : ""}" onclick="editActionText('${a.id}')">
+                  ${linkify(a.text)} 
+                  <small style="font-size: 10px; opacity: 0.5; margin-left: 8px;">${formatDate(a.createdAt)}</small>
+              </span>
+              <small class="task-assignees" style="font-size: 10px; color: var(--accent-brown); font-weight: bold; margin-top: 2px;">
+                  ${a.members && a.members.length > 0 ? "Assigned: " + taskMemberHtml : ""}
+              </small>
+          </div>
+          <span style="font-size:11px; font-weight:700; color:var(--muted-tan); cursor:pointer" onclick="logManualTime('${a.id}')">
+              ${formatTime(a.timeSpent)}
+          </span>
+          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 0 10px;" onclick="addTaskMember('${a.id}')">
+              <i class="fas fa-user-plus"></i>
+          </button>
+          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteAction('${a.id}')">
+              <i class="fas fa-times"></i>
+          </button>`;
             (a.done ? archList : activeList).appendChild(row);
           });
         }
 
-        // 7. Render Learnings Tab with Filtering
+        // 7. Render Learnings Tab
         const learningsList = document.getElementById("learnings-list");
         if (learningsList) {
           learningsList.innerHTML = "";
@@ -2329,24 +2370,24 @@
             const row = document.createElement("div");
             row.className = "task-item";
             row.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1; cursor: pointer;" onclick="editLearning('${e.id}')">
-                    <i class="fas fa-lightbulb" style="color: #e6b800; margin-top: 5px;"></i>
-                    <div style="flex: 1;">
-                        <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); text-transform: uppercase;">${formatDisplayDate(e.date)}</div>
-                        <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark); line-height: 1.4;">${linkify(e.text)}</div>
-                    </div>
-                </div>
-                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteLearning('${e.id}')">
-                    <i class="fas fa-trash-alt"></i>
-                </button>`;
+          <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1; cursor: pointer;" onclick="editLearning('${e.id}')">
+              <i class="fas fa-lightbulb" style="color: #e6b800; margin-top: 5px;"></i>
+              <div style="flex: 1;">
+                  <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan); text-transform: uppercase;">${formatDisplayDate(e.date)}</div>
+                  <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark); line-height: 1.4;">${linkify(e.text)}</div>
+              </div>
+          </div>
+          <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer; padding: 10px;" onclick="deleteLearning('${e.id}')">
+              <i class="fas fa-trash-alt"></i>
+          </button>`;
             learningsList.appendChild(row);
           });
         }
 
-        // 8. Render Issues Tab with Filtering
-        const issuesList = document.getElementById("issues-list");
-        if (issuesList) {
-          issuesList.innerHTML = "";
+        // 8. Render Quests Tab (Formerly Issues)
+        const questsList = document.getElementById("issues-list");
+        if (questsList) {
+          questsList.innerHTML = "";
           const filteredIssues = (p.issues || [])
             .filter(
               (i) =>
@@ -2373,37 +2414,37 @@
               : "transparent";
 
             row.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                    <button onclick="toggleIssueStatus('${i.id}')" style="border:none; background:none; cursor:pointer; color:${isResolved ? "var(--success-green)" : "#a66363"}">
-                        <i class="fas ${isResolved ? "fa-check-circle" : "fa-exclamation-circle"} fa-lg"></i>
-                    </button>
-                    <div style="flex: 1; cursor: pointer; ${isResolved ? "opacity: 0.5; text-decoration: line-through;" : ""}" onclick="editIssue('${i.id}')">
-                        <div style="font-size: 15px; font-weight: 700; color: var(--primary-dark);">
-                            <span style="font-family: 'Special Elite', monospace; color: var(--accent-brown); margin-right: 8px;">[${i.issueIdDisplay}]</span>
-                            ${i.text}
-                        </div>
-                        <div style="font-size: 10px; color: var(--muted-tan); text-transform: uppercase; font-weight:bold;">${formatDate(i.createdAt)}</div>
-                    </div>
-                </div>
-                <div class="issue-menu-container">
-                    <button class="menu-trigger" onclick="toggleIssueMenu(event, '${i.id}')">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div id="dropdown-${i.id}" class="issue-dropdown">
-                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'task')"><i class="fas fa-tasks"></i> Create Task</div>
-                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'learning')"><i class="fas fa-lightbulb"></i> Log Insight</div>
-                        <div class="menu-item" onclick="convertIssueTo('${i.id}', 'meeting')"><i class="fas fa-calendar-alt"></i> Schedule Meeting</div>
-                        <div class="menu-item delete-item" onclick="deleteIssue('${i.id}')"><i class="fas fa-trash-alt"></i> Delete Issue</div>
-                    </div>
-                </div>`;
-            issuesList.appendChild(row);
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+              <button onclick="toggleIssueStatus('${i.id}')" style="border:none; background:none; cursor:pointer; color:${isResolved ? "var(--success-green)" : "#a66363"}">
+                  <i class="fas ${isResolved ? "fa-check-circle" : "fa-exclamation-circle"} fa-lg"></i>
+              </button>
+              <div style="flex: 1; cursor: pointer; ${isResolved ? "opacity: 0.5; text-decoration: line-through;" : ""}" onclick="editIssue('${i.id}')">
+                  <div style="font-size: 15px; font-weight: 700; color: var(--primary-dark);">
+                      <span style="font-family: 'Special Elite', monospace; color: var(--accent-brown); margin-right: 8px;">[${i.issueIdDisplay}]</span>
+                      ${i.text}
+                  </div>
+                  <div style="font-size: 10px; color: var(--muted-tan); text-transform: uppercase; font-weight:bold;">${formatDate(i.createdAt)}</div>
+              </div>
+          </div>
+          <div class="issue-menu-container">
+              <button class="menu-trigger" onclick="toggleIssueMenu(event, '${i.id}')">
+                  <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div id="dropdown-${i.id}" class="issue-dropdown">
+                  <div class="menu-item" onclick="convertIssueTo('${i.id}', 'task')"><i class="fas fa-tasks"></i> Create Action</div>
+                  <div class="menu-item" onclick="convertIssueTo('${i.id}', 'learning')"><i class="fas fa-lightbulb"></i> Log Learnings</div>
+                  <div class="menu-item" onclick="convertIssueTo('${i.id}', 'meeting')"><i class="fas fa-calendar-alt"></i> Schedule Meeting</div>
+                  <div class="menu-item delete-item" onclick="deleteIssue('${i.id}')"><i class="fas fa-trash-alt"></i> Delete Quest</div>
+              </div>
+          </div>`;
+            questsList.appendChild(row);
           });
         }
 
-        // 9. Render Meetings Tab with Filtering
-        const plannerList = document.getElementById("planner-list");
-        if (plannerList) {
-          plannerList.innerHTML = "";
+        // 9. Render Meetings Tab (Formerly Planner)
+        const meetingsList = document.getElementById("meetings-list");
+        if (meetingsList) {
+          meetingsList.innerHTML = "";
           const todayStr = new Date().toISOString().split("T")[0];
           const filtered = (p.meetings || [])
             .filter((m) => m.text.toLowerCase().includes(planSearch))
@@ -2413,9 +2454,11 @@
             const isToday = m.date === todayStr;
             const row = document.createElement("div");
             row.className = "task-item";
+
+            // Removed the background color logic here
             if (isToday) {
+              // We keep the border-left to give a subtle "Today" indicator without a bulky background
               row.style.borderLeft = "4px solid var(--accent-brown)";
-              row.style.background = "rgba(111, 78, 55, 0.03)";
               row.style.paddingLeft = "10px";
             }
 
@@ -2427,29 +2470,28 @@
               .join(", ");
 
             row.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 15px; flex: 1; cursor: pointer;" onclick="editMeeting('${m.id}')">
-                    <div style="min-width: 50px; text-align: center; font-family: 'Special Elite', cursive; color: var(--accent-brown);">
-                        <div style="font-size: 10px; opacity: 0.7;">${new Date(m.date).toLocaleString("default", { month: "short" })}</div>
-                        <div style="font-size: 18px; font-weight: bold;">${m.date.split("-")[2]}</div>
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan);"><i class="far fa-clock"></i> ${m.time}</div>
-                        <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark);">${linkify(m.text)}</div>
-                        <small style="font-size: 10px; color: var(--accent-brown); font-weight: bold;">${m.members && m.members.length > 0 ? "👥 " + mHtml : ""}</small>
-                    </div>
+            <div style="display: flex; align-items: center; gap: 15px; flex: 1; cursor: pointer;" onclick="editMeeting('${m.id}')">
+                <div style="min-width: 50px; text-align: center; font-family: 'Special Elite', cursive; color: var(--accent-brown);">
+                    <div style="font-size: 10px; opacity: 0.7;">${new Date(m.date).toLocaleString("default", { month: "short" })}</div>
+                    <div style="font-size: 18px; font-weight: bold;">${m.date.split("-")[2]}</div>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="rescheduleMeeting('${m.id}')"><i class="fas fa-calendar-alt"></i></button>
-                    <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteMeeting('${m.id}')"><i class="fas fa-trash-alt"></i></button>
-                </div>`;
-            plannerList.appendChild(row);
+                <div style="flex: 1;">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--muted-tan);"><i class="far fa-clock"></i> ${m.time}</div>
+                    <div style="font-size: 16px; font-weight: 600; color: var(--primary-dark);">${linkify(m.text)}</div>
+                    <small style="font-size: 10px; color: var(--accent-brown); font-weight: bold;">${m.members && m.members.length > 0 ? "👥 " + mHtml : ""}</small>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="rescheduleMeeting('${m.id}')"><i class="fas fa-calendar-alt"></i></button>
+                <button style="border:none; background:none; color:var(--muted-tan); cursor:pointer;" onclick="deleteMeeting('${m.id}')"><i class="fas fa-trash-alt"></i></button>
+            </div>`;
+            meetingsList.appendChild(row);
           });
         }
 
         // 10. Sync Global Elements
         renderGlobalInsights();
       }
-
       // Toggle the visibility of the three-dot menu
       function toggleIssueMenu(event, id) {
         event.stopPropagation();
@@ -2486,7 +2528,7 @@
             inputId = "learning-desc-input";
             break;
           case "meeting":
-            targetTab = "planner";
+            targetTab = "meetings"; // Updated from 'planner'
             inputId = "plan-desc";
             break;
         }
@@ -2497,7 +2539,7 @@
         // 2. Locate the specific input field
         const inputField = document.getElementById(inputId);
         if (inputField) {
-          // 3. Set the value inside square brackets
+          // 3. Pre-fill the input with the Quest reference ID
           inputField.value = `[${ref}] `;
 
           // 4. Focus and move cursor to end
@@ -2792,7 +2834,8 @@
       }
 
       function switchTab(t) {
-        const tabs = ["issues", "tasks", "learnings", "notes", "planner"];
+        // Updated list of tab names
+        const tabs = ["quests", "tasks", "learnings", "notes", "meetings"];
         tabs.forEach((tab) => {
           const tabBtn = document.getElementById(`tab-${tab}`);
           const content = document.getElementById(`${tab}-content`);
@@ -2800,7 +2843,7 @@
           if (content) content.classList.toggle("hidden", t !== tab);
         });
 
-        if (t === "planner") {
+        if (t === "meetings") {
           document.getElementById("plan-date").valueAsDate = new Date();
         }
         renderActions();
@@ -2872,27 +2915,41 @@
 
         // 4. Contextual Navigation (Only when not typing in an input)
         if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
-          // --- Contextual Enter Key: Focus search/input of active tab ---
+          // --- Contextual Enter Key: Focus search/input of the active tab ---
           if (e.key === "Enter" && activeId) {
             e.preventDefault();
             const currentTabBtn = document.querySelector(".tab.active");
             if (currentTabBtn) {
               const currentTabId = currentTabBtn.id.replace("tab-", "");
+
+              // Mapped to your new names
               const inputMap = {
+                quests: "issue-input", // Formerly issues
                 tasks: "action-input",
                 learnings: "learning-desc-input",
-                issues: "issue-input",
-                planner: "plan-desc",
+                notes: "notes-area",
+                meetings: "plan-desc", // Formerly planner
               };
+
               const targetInputId = inputMap[currentTabId];
-              if (targetInputId) document.getElementById(targetInputId).focus();
+              if (targetInputId) {
+                const targetEl = document.getElementById(targetInputId);
+                if (targetEl) targetEl.focus();
+              }
             }
             return;
           }
 
           // --- Tab Navigation (Left/Right Arrows) ---
-          // Note: 'planner' maps to 'planner-content' in your HTML
-          const tabOrder = ["issues", "tasks", "learnings", "notes", "planner"];
+          // Updated order to match your new tab layout
+          const tabOrder = [
+            "quests",
+            "tasks",
+            "learnings",
+            "notes",
+            "meetings",
+          ];
+
           if (activeId && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
             e.preventDefault();
             const currentTabBtn = document.querySelector(".tab.active");
@@ -2928,11 +2985,12 @@
             if (newActiveId) {
               activeId = newActiveId;
               render();
-              // We keep the current tab persistent when switching projects
+
+              // Keep the current tab persistent when switching projects
               const currentTabBtn = document.querySelector(".tab.active");
               const currentTabId = currentTabBtn
                 ? currentTabBtn.id.replace("tab-", "")
-                : "issues";
+                : "quests"; // Default to Quests
               switchTab(currentTabId);
 
               // Auto-scroll the sidebar to keep the active project visible
