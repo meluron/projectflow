@@ -637,6 +637,10 @@
         text-transform: uppercase;
         margin-bottom: 4px;
       }
+
+      .p-actions .btn-icon:hover {
+        color: var(--success-green) !important;
+      }
     </style>
   </head>
   <body onkeydown="handleGlobalKeys(event)">
@@ -890,12 +894,12 @@
             style="cursor: pointer; font-size: 11px; padding: 10px 5px"
             onclick="exportData()"
           >
-            Export
+            Export All
           </button>
           <button
             class="standard-input"
             style="cursor: pointer; font-size: 11px; padding: 10px 5px"
-            onclick="document.getElementById('import-file').click()"
+            onclick="document.getElementById('import-file-input').click()"
           >
             Import
           </button>
@@ -908,10 +912,10 @@
           </button>
           <input
             type="file"
-            id="import-file"
+            id="import-file-input"
             class="hidden"
             accept=".json"
-            onchange="importData(event)"
+            onchange="handleImport(event)"
           />
         </div>
       </aside>
@@ -1440,16 +1444,19 @@
       function render() {
         const grid = document.getElementById("projects-grid");
         grid.innerHTML = "";
+
         projects.forEach((p) => {
           const el = document.createElement("div");
           el.className = `project-item ${activeId === p.id ? "active" : ""}`;
           el.draggable = true;
+
           el.onclick = () => {
             activeId = p.id;
             isMarkdownMode = true;
             render();
             switchTab("issues");
           };
+
           el.ondragstart = (e) => {
             dragSource = { type: "project", id: p.id };
           };
@@ -1465,29 +1472,33 @@
             .join(", ");
 
           el.innerHTML = `
-            <div class="p-title-row">
-                <span style="font-weight:700">${p.name}</span>
-                <div class="p-actions">
-                    <button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" onclick="event.stopPropagation(); addProjectMember('${
-                      p.id
-                    }')">
-                        <i class="fas fa-user-plus" title="Add Member"></i>
-                    </button>
-                    <button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" onclick="event.stopPropagation(); deleteProject('${
-                      p.id
-                    }')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="p-meta">
-                ${formatDate(p.createdAt)} • ${
-                  p.actions.filter((a) => a.done).length
-                }/${p.actions.length} tasks
-            </div>
-            <div class="p-member-list">
-                ${p.members && p.members.length > 0 ? "👥 " + memberHtml : ""}
-            </div>`;
+      <div class="p-title-row">
+          <span style="font-weight:700">${p.name}</span>
+          <div class="p-actions">
+              <button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" 
+                      onclick="event.stopPropagation(); exportSingleProject('${p.id}')">
+                  <i class="fas fa-download" title="Export Project"></i>
+              </button>
+              
+              <button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" 
+                      onclick="event.stopPropagation(); addProjectMember('${p.id}')">
+                  <i class="fas fa-user-plus" title="Add Member"></i>
+              </button>
+              
+              <button class="btn-icon" style="color:inherit; border:none; background:none; cursor:pointer;" 
+                      onclick="event.stopPropagation(); deleteProject('${p.id}')">
+                  <i class="fas fa-trash" title="Delete Project"></i>
+              </button>
+          </div>
+      </div>
+      <div class="p-meta">
+          ${formatDate(p.createdAt)} • ${
+            p.actions.filter((a) => a.done).length
+          }/${p.actions.length} tasks
+      </div>
+      <div class="p-member-list">
+          ${p.members && p.members.length > 0 ? "👥 " + memberHtml : ""}
+      </div>`;
           grid.appendChild(el);
         });
 
@@ -1499,6 +1510,7 @@
           document.getElementById("empty-state").classList.remove("hidden");
           document.getElementById("actions-panel").classList.add("hidden");
         }
+
         renderDashboard();
         updateTimerDisplay();
       }
@@ -1704,6 +1716,137 @@
         const p = projects.find((x) => x.id === activeId);
         p.meetings = p.meetings.filter((m) => m.id !== id);
         save();
+      }
+
+      /**
+       * Exports a single project as a JSON file
+       */
+      function exportSingleProject(id) {
+        const project = projects.find((p) => p.id === id);
+        if (!project) return;
+
+        const blob = new Blob([JSON.stringify(project)], {
+          type: "application/json",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `PF_Project_${project.name.replace(/\s+/g, "_")}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      /**
+       * Enhanced Import: Now appends data instead of replacing it
+       */
+      function importData(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const importedData = JSON.parse(ev.target.result);
+
+            // We use a timestamp + random string to ensure the new IDs never
+            // collide with existing projects in your list.
+            const generateUniqueId = () =>
+              Date.now().toString() + Math.random().toString(36).substr(2, 5);
+
+            // SCENARIO A: The file is a full backup (contains a .projects array)
+            if (importedData.projects && Array.isArray(importedData.projects)) {
+              importedData.projects.forEach((proj) => {
+                proj.id = generateUniqueId(); // Assign new ID to the copy
+                projects.push(proj);
+              });
+
+              // Also append Pomo history if it exists
+              if (
+                importedData.pomoHistory &&
+                Array.isArray(importedData.pomoHistory)
+              ) {
+                pomoHistory = [...pomoHistory, ...importedData.pomoHistory];
+              }
+            }
+
+            // SCENARIO B: The file is a single individual project
+            else if (importedData.name && importedData.actions) {
+              importedData.id = generateUniqueId(); // Assign new ID to the copy
+              projects.push(importedData);
+            } else {
+              throw new Error("Invalid file format");
+            }
+
+            // Save to LocalStorage and Refresh
+            localStorage.setItem("pf-v12", JSON.stringify(projects));
+            localStorage.setItem("pf-pomo-v12", JSON.stringify(pomoHistory));
+
+            alert("Projects imported and appended successfully!");
+            location.reload(); // Refresh to show new items
+          } catch (err) {
+            console.error("Import Error:", err);
+            alert(
+              "Failed to import. Please check if the file is a valid Project Flow JSON.",
+            );
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      function handleImport(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const data = JSON.parse(ev.target.result);
+
+            // Helper to generate a fresh ID to avoid conflicts with existing projects
+            const generateNewId = () =>
+              Date.now().toString() + Math.random().toString(36).substr(2, 5);
+
+            // SCENARIO 1: It's a full backup file (contains .projects array)
+            if (data.projects && Array.isArray(data.projects)) {
+              data.projects.forEach((proj) => {
+                proj.id = generateNewId();
+                projects.push(proj);
+              });
+              // Append Pomo history if present
+              if (data.pomoHistory) {
+                pomoHistory = [...pomoHistory, ...data.pomoHistory];
+              }
+            }
+
+            // SCENARIO 2: It's a single project file
+            else if (data.name && data.actions) {
+              const singleProj = data;
+              singleProj.id = generateNewId();
+              projects.push(singleProj);
+            } else {
+              alert(
+                "The file format is not recognized as a Project Flow export.",
+              );
+              return;
+            }
+
+            // 1. Save the newly appended list to local storage
+            localStorage.setItem("pf-v12", JSON.stringify(projects));
+            localStorage.setItem("pf-pomo-v12", JSON.stringify(pomoHistory));
+
+            // 2. Clear the input value so the same file can be imported again if desired
+            e.target.value = "";
+
+            // 3. Inform the user and refresh the UI
+            alert("Project(s) imported and appended successfully!");
+            render(); // Refresh the sidebar list
+          } catch (err) {
+            console.error("Import failed:", err);
+            alert(
+              "Failed to parse the JSON file. Please ensure it's a valid export.",
+            );
+          }
+        };
+        reader.readAsText(file);
       }
 
       function addLearning() {
