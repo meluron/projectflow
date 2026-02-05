@@ -1440,7 +1440,12 @@
                   placeholder="+ Add Learnings..."
                   oninput="handleAutocomplete(event)"
                   onblur="setTimeout(removeSuggestionMenu, 200)"
-                  onkeydown="if (e.key === 'Enter') addLearning();"
+                  onkeydown="
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      addLearning();
+                    }
+                  "
                 />
                 <span class="enter-icon">↵</span>
               </div>
