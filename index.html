@@ -2023,15 +2023,17 @@
 
         if (!p.issues) p.issues = [];
 
-        // FIND HIGHEST EXISTING ID TO PREVENT CONSECUTIVE DUPLICATES
-        // We scan existing issues, extract the number from [#101], and find the max.
-        let nextIdNumber = 101;
+        // STARTING AT 1:
+        // We set the default to 1 for the very first issue in a project.
+        let nextIdNumber = 1;
+
         if (p.issues.length > 0) {
           const ids = p.issues.map((i) => {
-            // Extract numbers from strings like "#105"
+            // Extract numbers from strings like "#1" or "#10"
             const num = parseInt(i.issueIdDisplay.replace("#", ""));
             return isNaN(num) ? 0 : num;
           });
+          // Find the highest number used so far and add 1
           nextIdNumber = Math.max(...ids) + 1;
         }
 
