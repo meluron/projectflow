@@ -3250,7 +3250,21 @@
 
             if (newActiveId) {
               activeId = newActiveId;
-              render();
+              render(); // Re-renders the list to apply the .active class
+
+              // --- SCROLL INTO VIEW LOGIC ---
+              // We wait a tiny bit for the render to finish, then find the element
+              setTimeout(() => {
+                const activeEl = document.querySelector(".project-item.active");
+                if (activeEl) {
+                  activeEl.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest", // "nearest" prevents the whole page from jumping
+                  });
+                }
+              }, 10);
+              // ------------------------------
+
               const currentTabBtn = document.querySelector(".tab.active");
               const currentTabId = currentTabBtn
                 ? currentTabBtn.id.replace("tab-", "")
