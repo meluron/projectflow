@@ -853,25 +853,95 @@
       }
 
       /* The shortcut badge */
-      .kbd-badge {
+      .kbd-badge,
+      .shortcut-hint,
+      .enter-icon {
         position: absolute;
         right: 12px;
-        background: #f0ece8; /* Matches your warm theme */
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        padding: 2px 6px;
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--muted-tan);
-        font-family: monospace;
-        pointer-events: none; /* User clicks through to the input */
-        transition: opacity 0.2s ease;
-        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        line-height: 1; /* Prevents text height from pushing the box down */
       }
 
       /* Hide badge when user clicks/focuses or types */
       .standard-input:focus + .kbd-badge,
       .standard-input:not(:placeholder-shown) + .kbd-badge {
+        opacity: 0;
+      }
+
+      /* Suggestion Dropdown Container */
+      .suggestion-menu {
+        position: absolute;
+        background: var(--paper-white);
+        border: 1px solid var(--accent-brown);
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        max-height: 200px;
+        overflow-y: auto;
+        min-width: 250px;
+      }
+
+      .suggestion-item {
+        padding: 10px 14px;
+        cursor: pointer;
+        font-size: 13px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        gap: 10px;
+      }
+
+      .suggestion-item:last-child {
+        border-bottom: none;
+      }
+
+      .suggestion-item:hover,
+      .suggestion-item.selected {
+        background: rgba(111, 78, 55, 0.1);
+      }
+
+      .suggestion-item b {
+        color: var(--accent-brown);
+        font-family: "Special Elite", monospace;
+      }
+      .kbd-badge,
+      .shortcut-hint {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+
+        /* The "Box" Look */
+        background: #f0ece8;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 2px 6px;
+
+        /* Typography */
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted-tan);
+        font-family: monospace;
+        line-height: 1;
+
+        /* Alignment */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+      }
+
+      /* Hide when typing */
+      .standard-input:focus + .kbd-badge,
+      .standard-input:not(:placeholder-shown) + .kbd-badge,
+      .standard-input:focus + .shortcut-hint,
+      .standard-input:not(:placeholder-shown) + .shortcut-hint {
         opacity: 0;
       }
     </style>
@@ -1311,6 +1381,8 @@
                   id="issue-input"
                   class="standard-input"
                   placeholder="+ Add Quest..."
+                  oninput="handleAutocomplete(event)"
+                  onblur="setTimeout(removeSuggestionMenu, 200)"
                   onkeydown="if (event.key === 'Enter') addIssue();"
                 />
                 <span class="enter-icon">↵</span>
@@ -1326,8 +1398,9 @@
                   type="text"
                   id="action-input"
                   class="standard-input"
-                  style="background: white; border: 1.5px solid #eee"
                   placeholder="+ Add Actionable Task..."
+                  oninput="handleAutocomplete(event)"
+                  onblur="setTimeout(removeSuggestionMenu, 200)"
                 />
                 <span class="enter-icon">↵</span>
               </div>
@@ -1336,8 +1409,12 @@
                   type="text"
                   id="action-search"
                   class="standard-input"
-                  placeholder="Search Actions..."
-                  oninput="renderActions()"
+                  placeholder="🔍 Search..."
+                  oninput="
+                    renderActions();
+                    handleAutocomplete(event);
+                  "
+                  onblur="setTimeout(removeSuggestionMenu, 200)"
                 />
                 <span class="shortcut-hint">\</span>
               </div>
@@ -1355,24 +1432,33 @@
 
           <div id="learnings-content" class="hidden">
             <div style="display: flex; gap: 10px; margin-bottom: 20px">
-              <div class="input-group">
+              <div class="input-group" style="flex: 2.5">
                 <input
                   type="text"
                   id="learning-desc-input"
                   class="standard-input"
                   placeholder="+ Add Learnings..."
-                  onkeydown="if (event.key === 'Enter') addLearning();"
+                  oninput="handleAutocomplete(event)"
+                  onblur="setTimeout(removeSuggestionMenu, 200)"
+                  onkeydown="if (e.key === 'Enter') addLearning();"
                 />
                 <span class="enter-icon">↵</span>
               </div>
-              <input
-                type="text"
-                id="learning-search"
-                class="standard-input"
-                style="flex: 1"
-                placeholder="🔍 Search..."
-                oninput="renderActions()"
-              />
+
+              <div class="input-group" style="flex: 1">
+                <input
+                  type="text"
+                  id="learning-search"
+                  class="standard-input"
+                  placeholder="🔍 Search..."
+                  oninput="
+                    renderActions();
+                    handleAutocomplete(event);
+                  "
+                  onblur="setTimeout(removeSuggestionMenu, 200)"
+                />
+                <span class="kbd-badge">\</span>
+              </div>
             </div>
             <div id="learnings-list"></div>
           </div>
@@ -1422,8 +1508,12 @@
                   type="text"
                   id="plan-search"
                   class="standard-input"
-                  placeholder="🔍 Search Meetings..."
-                  oninput="renderActions()"
+                  placeholder="🔍 Search..."
+                  oninput="
+                    renderActions();
+                    handleAutocomplete(event);
+                  "
+                  onblur="setTimeout(removeSuggestionMenu, 200)"
                 />
               </div>
               <div class="input-group" style="flex: 1">
@@ -1432,6 +1522,8 @@
                   id="plan-desc"
                   class="standard-input"
                   placeholder="Meeting Title..."
+                  oninput="handleAutocomplete(event)"
+                  onblur="setTimeout(removeSuggestionMenu, 200)"
                   onkeydown="if (event.key === 'Enter') addMeeting();"
                 />
                 <span class="enter-icon">↵</span>
@@ -1531,6 +1623,90 @@
       let pomoTimer = null;
       let isPomoRunning = false;
       let longHoldTimer = null;
+      let currentSuggestionIdx = 0;
+      let suggestionMenu = null;
+
+      function handleAutocomplete(e) {
+        const input = e.target;
+        const val = input.value;
+        const cursorPos = input.selectionStart;
+
+        // 1. Look for the last "#" before the cursor
+        const lastHash = val.lastIndexOf("#", cursorPos - 1);
+
+        // 2. Trigger if "#" is found AND it's at the start of a word (preceded by space or start of line)
+        const charBeforeHash = val.charAt(lastHash - 1);
+        const isStartOfWord = lastHash === 0 || /\s/.test(charBeforeHash);
+
+        if (
+          lastHash !== -1 &&
+          isStartOfWord &&
+          !val.substring(lastHash, cursorPos).includes(" ")
+        ) {
+          const query = val.substring(lastHash + 1, cursorPos).toLowerCase();
+          showSuggestions(input, lastHash, query);
+        } else {
+          removeSuggestionMenu();
+        }
+      }
+
+      function selectSuggestion(input, hashIndex, displayId) {
+        const val = input.value;
+        const cursorPos = input.selectionStart;
+
+        // We remove the "#" typed and replace it with "[#101]" (or your preferred format)
+        const before = val.substring(0, hashIndex);
+        const after = val.substring(cursorPos);
+
+        // This wraps it in brackets automatically so your 'linkify' function
+        // can still detect it as a clickable link later!
+        input.value = `${before}[${displayId}] ${after}`;
+
+        removeSuggestionMenu();
+        input.focus();
+      }
+
+      function showSuggestions(input, index, query) {
+        removeSuggestionMenu();
+
+        const p = projects.find((x) => x.id === activeId);
+        if (!p || !p.issues) return;
+
+        // UPDATED: Added filter to only show 'open' issues
+        const matches = p.issues.filter(
+          (i) =>
+            i.status === "open" &&
+            (i.issueIdDisplay.toLowerCase().includes(query) ||
+              i.text.toLowerCase().includes(query)),
+        );
+
+        if (matches.length === 0) return;
+
+        suggestionMenu = document.createElement("div");
+        suggestionMenu.className = "suggestion-menu";
+
+        const rect = input.getBoundingClientRect();
+        suggestionMenu.style.left = `${rect.left + window.scrollX}px`;
+        suggestionMenu.style.top = `${rect.bottom + window.scrollY + 5}px`;
+
+        matches.forEach((m) => {
+          const item = document.createElement("div");
+          item.className = "suggestion-item";
+          item.innerHTML = `<b>${m.issueIdDisplay}</b> <span>${m.text}</span>`;
+          // We pass the displayId (#101) to the selection function
+          item.onclick = () => selectSuggestion(input, index, m.issueIdDisplay);
+          suggestionMenu.appendChild(item);
+        });
+
+        document.body.appendChild(suggestionMenu);
+      }
+
+      function removeSuggestionMenu() {
+        if (suggestionMenu) {
+          suggestionMenu.remove();
+          suggestionMenu = null;
+        }
+      }
 
       function init() {
         render();
