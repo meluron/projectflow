@@ -2405,19 +2405,18 @@
 
       function linkify(text) {
         if (!text) return "";
-        return text.replace(/(#\d{3,})/g, (match) => {
+        return text.replace(/(#\d+)/g, (match) => {
           return `<span class="issue-link" 
-                  onclick="event.stopPropagation(); hideIssueTooltip(); jumpToIssue('${match}')" 
-                  onmouseenter="showIssueTooltip(event, '${match}')" 
-                  onmouseleave="hideIssueTooltip()"
-                  style="color:var(--accent-brown); cursor:pointer; text-decoration:underline; font-weight:bold;">${match}</span>`;
+            onclick="event.stopPropagation(); hideIssueTooltip(); jumpToIssue('${match}')" 
+            onmouseenter="showIssueTooltip(event, '${match}')" 
+            onmousemove="moveIssueTooltip(event)"
+            onmouseleave="hideIssueTooltip()"
+            style="color:var(--accent-brown); cursor:pointer; text-decoration:underline; font-weight:bold;">${match}</span>`;
         });
       }
-
       let currentTooltip = null;
 
       function showIssueTooltip(event, displayId) {
-        // Remove any existing tooltip first to prevent "ghost" popups
         hideIssueTooltip();
 
         const p = projects.find((x) => x.id === activeId);
@@ -2437,19 +2436,19 @@
       <small style="opacity:0.6; font-size:9px;">Created: ${formatDate(issue.createdAt)}</small>
     `;
         } else {
-          currentTooltip.innerHTML = `<i style="opacity:0.6">No issue found</i>`;
+          currentTooltip.innerHTML = `<i style="opacity:0.6">Quest not found</i>`;
         }
 
         document.body.appendChild(currentTooltip);
-        moveIssueTooltip(event);
+        moveIssueTooltip(event); // Initial position
       }
 
-      // NEW: Follow the mouse cursor for a smoother feel
       function moveIssueTooltip(event) {
         if (currentTooltip) {
-          const offset = 15; // Distance from cursor
-          currentTooltip.style.left = `${event.pageX + offset}px`;
-          currentTooltip.style.top = `${event.pageY - (currentTooltip.offsetHeight + offset)}px`;
+          const offset = 15;
+          // Use clientX/Y for positioning relative to the viewport
+          currentTooltip.style.left = `${event.clientX + offset}px`;
+          currentTooltip.style.top = `${event.clientY + offset}px`;
         }
       }
 
