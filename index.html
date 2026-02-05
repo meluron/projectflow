@@ -1509,18 +1509,23 @@
               >
                 <input type="date" id="plan-date" class="standard-input" />
                 <input type="time" id="plan-time" class="standard-input" />
-                <input
-                  type="text"
-                  id="plan-search"
-                  class="standard-input"
-                  placeholder="🔍 Search..."
-                  oninput="
-                    renderActions();
-                    handleAutocomplete(event);
-                  "
-                  onblur="setTimeout(removeSuggestionMenu, 200)"
-                />
+
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="plan-search"
+                    class="standard-input"
+                    placeholder="🔍 Search..."
+                    oninput="
+                      renderActions();
+                      handleAutocomplete(event);
+                    "
+                    onblur="setTimeout(removeSuggestionMenu, 200)"
+                  />
+                  <span class="shortcut-hint">\</span>
+                </div>
               </div>
+
               <div class="input-group" style="flex: 1">
                 <input
                   type="text"
