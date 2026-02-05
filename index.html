@@ -1870,51 +1870,104 @@
           "global-schedule-content",
         );
 
-        let totalPending = 0;
-        let totalIssues = 0;
-        let allMeetings = [];
+        if (!statsContent || !scheduleContent) return;
 
+        let totalPendingActions = 0;
+        let totalOpenIssues = 0;
+        let allMeetings = [];
+        const todayStr = new Date().toISOString().split("T")[0];
+
+        // 1. Aggregate data from every project
         projects.forEach((p) => {
-          totalPending += p.actions.filter((a) => !a.done).length;
-          totalIssues += (p.issues || []).filter(
+          // Count tasks not marked as 'done'
+          totalPendingActions += (p.actions || []).filter(
+            (a) => !a.done,
+          ).length;
+
+          // Count issues (Quests) marked as 'open'
+          totalOpenIssues += (p.issues || []).filter(
             (i) => i.status === "open",
           ).length;
 
+          // Collect all meetings and tag them with their parent project info
           if (p.meetings) {
             p.meetings.forEach((m) => {
-              allMeetings.push({ ...m, projectName: p.name });
+              allMeetings.push({
+                ...m,
+                projectName: p.name,
+                projectId: p.id,
+              });
             });
           }
         });
 
-        // Render Stats
+        // 2. Render the Global Stats (Tower)
         statsContent.innerHTML = `
-        <div class="insight-stat-item"><span>Pending Actions:</span> <span>${totalPending}</span></div>
-        <div class="insight-stat-item" style="color: #a66363"><span>Open Issues:</span> <span>${totalIssues}</span></div>
-    `;
+    <div class="insight-stat-item">
+        <span>Pending Actions</span>
+        <span>${totalPendingActions}</span>
+    </div>
+    <div class="insight-stat-item" style="color: ${totalOpenIssues > 0 ? "#a66363" : "var(--muted-tan)"}">
+        <span>Open Quests</span>
+        <span>${totalOpenIssues}</span>
+    </div>
+  `;
 
-        // Render Schedule in proper chronology
+        // 3. Process and Sort Master Schedule
+        // Filter out past meetings and sort by date/time ascending
         const upcoming = allMeetings
-          .filter((m) => new Date(m.date) >= new Date().setHours(0, 0, 0, 0))
+          .filter((m) => m.date >= todayStr)
           .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
+        // Clear previous list
         scheduleContent.innerHTML = upcoming.length
           ? ""
-          : "<p style='font-size:11px; opacity:0.5'>No upcoming meetings.</p>";
+          : "<p style='font-size:11px; opacity:0.5; text-align:center;'>No upcoming meetings.</p>";
 
+        // 4. Render Chronological Items
         upcoming.forEach((m) => {
           const item = document.createElement("div");
           item.className = "chronology-item";
-          // Highlight if today
-          if (m.date === new Date().toISOString().split("T")[0]) {
-            item.style.borderColor = "var(--accent-brown)";
+
+          // Highlight logic for today's meetings
+          if (m.date === todayStr) {
+            item.style.borderColor = "var(--success-green)";
+            item.style.background = "rgba(122, 154, 101, 0.05)";
           }
 
+          // CLICK HANDLER: Jump to project and open Meetings tab
+          item.onclick = () => {
+            activeId = m.projectId;
+
+            // Update sidebar and notebook context
+            render();
+
+            // Fix: Use 'meetings' to match your tab ID, not 'planner'
+            switchTab("meetings");
+
+            // Optional: Smooth scroll the meeting into view in the main notebook
+            setTimeout(() => {
+              const meetingElements = document.querySelectorAll(
+                "#meetings-list .task-item",
+              );
+              for (let el of meetingElements) {
+                if (el.textContent.includes(m.text)) {
+                  el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  el.style.backgroundColor = "rgba(111, 78, 55, 0.1)";
+                  setTimeout(() => (el.style.backgroundColor = ""), 2000);
+                  break;
+                }
+              }
+            }, 150);
+          };
+
           item.innerHTML = `
-            <b>${m.text}</b>
-            <span>${formatDisplayDate(m.date)} @ ${m.time}</span>
-            <div style="font-size:9px; opacity:0.6">${m.projectName}</div>
-        `;
+      <b>${m.text}</b>
+      <span>${m.time} • ${formatDisplayDate(m.date)}</span>
+      <div style="font-size:9px; opacity:0.6; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">
+          <i class="fas fa-folder-open" style="font-size:8px;"></i> ${m.projectName}
+      </div>
+    `;
           scheduleContent.appendChild(item);
         });
       }
@@ -2897,19 +2950,14 @@
         let allMeetings = [];
         const todayStr = new Date().toISOString().split("T")[0];
 
-        // 1. Aggregate data from every project
         projects.forEach((p) => {
-          // Count tasks not marked as 'done'
           totalPendingActions += (p.actions || []).filter(
             (a) => !a.done,
           ).length;
-
-          // Count issues marked as 'open'
           totalOpenIssues += (p.issues || []).filter(
             (i) => i.status === "open",
           ).length;
 
-          // Collect all meetings and tag them with their project name/ID for navigation
           if (p.meetings) {
             p.meetings.forEach((m) => {
               allMeetings.push({
@@ -2921,50 +2969,45 @@
           }
         });
 
-        // 2. Render the Global Stats
         statsContent.innerHTML = `
-        <div class="insight-stat-item">
-            <span>Pending Actions</span>
-            <span>${totalPendingActions}</span>
-        </div>
-        <div class="insight-stat-item" style="color: ${totalOpenIssues > 0 ? "#a66363" : "var(--muted-tan)"}">
-            <span>Open Issues</span>
-            <span>${totalOpenIssues}</span>
-        </div>
-    `;
+    <div class="insight-stat-item"><span>Pending Actions</span> <span>${totalPendingActions}</span></div>
+    <div class="insight-stat-item" style="color: ${totalOpenIssues > 0 ? "#a66363" : "var(--muted-tan)"}">
+        <span>Open Quests</span> <span>${totalOpenIssues}</span>
+    </div>
+  `;
 
-        // 3. Process and Sort Master Schedule
-        // Filter out past meetings (older than today) and sort by date then time
         const upcoming = allMeetings
           .filter((m) => m.date >= todayStr)
           .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
-        // Clear previous list
         scheduleContent.innerHTML = upcoming.length
           ? ""
           : "<p style='font-size:11px; opacity:0.5; text-align:center;'>No upcoming meetings.</p>";
 
-        // 4. Render Chronological Items
         upcoming.forEach((m) => {
           const item = document.createElement("div");
           item.className = "chronology-item";
 
-          // Highlight logic for today's meetings
           if (m.date === todayStr) {
             item.style.borderColor = "var(--success-green)";
             item.style.background = "rgba(122, 154, 101, 0.05)";
           }
 
-          // Action: Click to switch to that project and open the Planner tab
-          item.onclick = () => {
+          // THE FIX: We force the project change AND the tab change in one go
+          item.onclick = (e) => {
+            e.stopPropagation();
             activeId = m.projectId;
-            render(); // This will refresh the sidebar and main view
-            switchTab("planner");
 
-            // Optional: Smooth scroll the meeting into view in the main notebook
+            // 1. Refresh the whole UI to load the new project
+            render();
+
+            // 2. Switch to the meetings tab (lowercase 'meetings' to match your tab logic)
+            switchTab("meetings");
+
+            // 3. Optional: Scroll to the specific item
             setTimeout(() => {
               const target = document.querySelector(
-                `#planner-list [onclick*="${m.id}"]`,
+                `#meetings-list .task-item`,
               );
               if (target)
                 target.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -2972,12 +3015,12 @@
           };
 
           item.innerHTML = `
-            <b>${m.text}</b>
-            <span>${m.time} • ${formatDisplayDate(m.date)}</span>
-            <div style="font-size:9px; opacity:0.6; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">
-                <i class="fas fa-folder-open" style="font-size:8px;"></i> ${m.projectName}
-            </div>
-        `;
+      <b>${m.text}</b>
+      <span>${m.time} • ${formatDisplayDate(m.date)}</span>
+      <div style="font-size:9px; opacity:0.6; text-transform:uppercase; margin-top:2px;">
+          <i class="fas fa-folder-open"></i> ${m.projectName}
+      </div>
+    `;
           scheduleContent.appendChild(item);
         });
       }
