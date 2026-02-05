@@ -818,6 +818,62 @@
         border-color: var(--muted-tan) !important;
         box-shadow: 0 0 8px rgba(192, 160, 128, 0.2);
       }
+      .input-group {
+        position: relative;
+      }
+
+      /* Subtle shortcut hint inside the input */
+      .shortcut-hint {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #eee;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 10px;
+        font-weight: bold;
+        color: #888;
+        pointer-events: none; /* User clicks "through" it */
+        font-family: monospace;
+        transition: opacity 0.2s;
+      }
+
+      /* Hide the hint when the user is typing or the input is focused */
+      .standard-input:focus + .shortcut-hint,
+      .standard-input:not(:placeholder-shown) + .shortcut-hint {
+        opacity: 0;
+      }
+      /* Container to hold input and badge */
+      .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      /* The shortcut badge */
+      .kbd-badge {
+        position: absolute;
+        right: 12px;
+        background: #f0ece8; /* Matches your warm theme */
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted-tan);
+        font-family: monospace;
+        pointer-events: none; /* User clicks through to the input */
+        transition: opacity 0.2s ease;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+      }
+
+      /* Hide badge when user clicks/focuses or types */
+      .standard-input:focus + .kbd-badge,
+      .standard-input:not(:placeholder-shown) + .kbd-badge {
+        opacity: 0;
+      }
     </style>
   </head>
   <body onkeydown="handleGlobalKeys(event)">
@@ -1108,8 +1164,9 @@
             type="text"
             id="project-input"
             class="standard-input"
-            placeholder="[/] New Project..."
+            placeholder="New Project..."
           />
+          <span class="kbd-badge">/</span>
         </div>
         <div class="project-list" id="projects-grid"></div>
 
@@ -1274,14 +1331,16 @@
                 />
                 <span class="enter-icon">↵</span>
               </div>
-              <input
-                type="text"
-                id="action-search"
-                class="standard-input"
-                style="flex: 1"
-                placeholder="🔍 Search..."
-                oninput="renderActions()"
-              />
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="action-search"
+                  class="standard-input"
+                  placeholder="Search Actions..."
+                  oninput="renderActions()"
+                />
+                <span class="shortcut-hint">\</span>
+              </div>
             </div>
             <div id="active-actions"></div>
             <div
@@ -2908,7 +2967,7 @@
           return;
         }
 
-        // 3. Global Shortcut: Jump to New Project Input
+        // 3. Global Shortcut: Jump to New Project Input [/]
         if (
           e.key === "/" &&
           !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
@@ -2918,9 +2977,38 @@
           return;
         }
 
-        // 4. Contextual Navigation (Only active when NOT typing)
+        // 4. NEW Global Shortcut: Focus Search Box in current tab [\]
+        if (
+          e.key === "\\" &&
+          !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
+        ) {
+          e.preventDefault();
+          if (activeId) {
+            const activeTabBtn = document.querySelector(".tab.active");
+            if (activeTabBtn) {
+              const currentTabId = activeTabBtn.id.replace("tab-", "");
+              const searchInputMap = {
+                quests: "issue-input",
+                tasks: "action-search",
+                learnings: "learning-search",
+                meetings: "plan-search",
+              };
+
+              const targetSearchId = searchInputMap[currentTabId];
+              const searchInput = document.getElementById(targetSearchId);
+              if (searchInput) {
+                searchInput.focus();
+                // Optional: selects existing text so you can overwrite immediately
+                searchInput.select();
+              }
+            }
+          }
+          return;
+        }
+
+        // 5. Contextual Navigation (Only active when NOT typing)
         if (!["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
-          // [Enter] to jump into the current tab's input
+          // [Enter] to jump into the current tab's primary input
           if (e.key === "Enter" && activeId) {
             e.preventDefault();
             const currentTabBtn = document.querySelector(".tab.active");
